@@ -1,0 +1,11 @@
+Django
+djangorestframework
+psycopg2
+Celery
+redis
+requests
+beautifulsoup4
+python-whois
+dnspython
+python-dotenv
+drf-yasg            
