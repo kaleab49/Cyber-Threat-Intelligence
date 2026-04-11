@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from .models import *
-from .serializers import *
+from .serializer import *
 
 class IOCViewSet(viewsets.ModelViewSet):
     queryset = IOC.objects.all().order_by('-last_seen')
