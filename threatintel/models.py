@@ -1,9 +1,7 @@
 from django.db import models
 import uuid
 
-# =========================
-# IOC (Indicator of Compromise)
-# =========================
+
 class IOC(models.Model):
     IOC_TYPES = [
         ('ip', 'IP Address'),
@@ -27,9 +25,7 @@ class IOC(models.Model):
         return f"{self.value} ({self.type})"
 
 
-# =========================
-# Raw Threat Data (Scraped or Honeypot)
-# =========================
+
 class Event(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     source = models.CharField(max_length=100)
@@ -41,10 +37,6 @@ class Event(models.Model):
     def __str__(self):
         return f"Event from {self.source}"
 
-
-# =========================
-# Threat Feeds (sources)
-# =========================
 class ThreatFeed(models.Model):
     name = models.CharField(max_length=255)
     url = models.URLField()
@@ -54,9 +46,6 @@ class ThreatFeed(models.Model):
         return self.name
 
 
-# =========================
-# Malware Samples (Hashes + metadata)
-# =========================
 class Malware(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=True, null=True)
@@ -70,10 +59,7 @@ class Malware(models.Model):
         return self.hash_value
 
 
-# =========================
-# Threat Actor (APT groups, attackers)
-# =========================
-class ThreatActor(models.Model):
+#class ThreatActor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     aliases = models.JSONField(blank=True, null=True)
@@ -84,9 +70,7 @@ class ThreatActor(models.Model):
         return self.name
 
 
-# =========================
-# Campaign (group of attacks)
-# =========================
+
 class Campaign(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
@@ -97,10 +81,6 @@ class Campaign(models.Model):
     def __str__(self):
         return self.name
 
-
-# =========================
-# Relationships (Correlation)
-# =========================
 class Relationship(models.Model):
     RELATION_TYPES = [
         ('uses', 'USES'),
