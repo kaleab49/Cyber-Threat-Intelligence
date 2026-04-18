@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
             name='Malware',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(blank=True, max_length=255, null=True)),
+                ('name', models.CharField(blank=True, max_length=255, null=True)),  
                 ('hash_value', models.CharField(max_length=255, unique=True)),
                 ('hash_type', models.CharField(default='sha256', max_length=20)),
                 ('first_seen', models.DateTimeField(auto_now_add=True)),
