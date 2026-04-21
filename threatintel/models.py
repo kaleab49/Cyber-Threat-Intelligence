@@ -1,4 +1,8 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+import ipaddress
+import re
+from urllib.parse import urlparse
 import uuid
 
 
@@ -20,6 +24,44 @@ class IOC(models.Model):
     first_seen = models.DateTimeField(auto_now_add=True)
     last_seen = models.DateTimeField(auto_now=True)
     tags = models.JSONField(blank=True, null=True)
+
+    def clean(self):
+        if not self.value:
+            raise ValidationError({"value": "IOC value cannot be empty."})
+
+        value = str(self.value).strip()
+
+        if self.type == "ip":
+            try:
+                ipaddress.ip_address(value)
+            except ValueError as exc:
+                raise ValidationError({"value": "Invalid IP address format."}) from exc
+        elif self.type == "domain":
+            domain_regex = re.compile(
+                r"^(?=.{1,253}$)(?!-)(?:[a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,63}$"
+            )
+            if not domain_regex.match(value):
+                raise ValidationError({"value": "Invalid domain format."})
+        elif self.type == "url":
+            parsed = urlparse(value)
+            if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+                raise ValidationError({"value": "Invalid URL format."})
+        elif self.type == "hash":
+            if not re.fullmatch(r"(?i)[a-f0-9]{32}|[a-f0-9]{40}|[a-f0-9]{64}", value):
+                raise ValidationError({"value": "Invalid hash format (md5/sha1/sha256)."})
+        elif self.type == "cve":
+            if not re.fullmatch(r"(?i)CVE-\d{4}-\d{4,7}", value):
+                raise ValidationError({"value": "Invalid CVE format."})
+        elif self.type == "email":
+            email_regex = re.compile(
+                r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+            )
+            if not email_regex.match(value):
+                raise ValidationError({"value": "Invalid email format."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.value} ({self.type})"
