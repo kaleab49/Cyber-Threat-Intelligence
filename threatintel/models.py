@@ -12,9 +12,13 @@ class IOC(models.Model):
         ('domain', 'Domain'),
         ('url', 'URL'),
         ('hash', 'Hash'),
+        ('md5', 'MD5'),
+        ('sha1', 'SHA1'),
+        ('sha256', 'SHA256'),
         ('cve', 'CVE'),
         ('email', 'Email'),
     ]
+    HASH_TYPES = {"hash", "md5", "sha1", "sha256"}
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     value = models.CharField(max_length=255, db_index=True)
@@ -44,7 +48,7 @@ class IOC(models.Model):
                 netloc = hostname
             path = parsed.path or "/"
             return urlunparse((scheme, netloc, path, "", parsed.query, "")).strip()
-        if ioc_type == "hash":
+        if ioc_type in IOC.HASH_TYPES:
             return normalized.lower()
         if ioc_type == "cve":
             return normalized.upper()
@@ -75,9 +79,17 @@ class IOC(models.Model):
             parsed = urlparse(value)
             if parsed.scheme not in {"http", "https"} or not parsed.netloc:
                 raise ValidationError({"value": "Invalid URL format."})
-        elif self.type == "hash":
-            if not re.fullmatch(r"(?i)[a-f0-9]{32}|[a-f0-9]{40}|[a-f0-9]{64}", value):
-                raise ValidationError({"value": "Invalid hash format (md5/sha1/sha256)."})
+        elif self.type in self.HASH_TYPES:
+            hash_patterns = {
+                "md5": r"(?i)[a-f0-9]{32}",
+                "sha1": r"(?i)[a-f0-9]{40}",
+                "sha256": r"(?i)[a-f0-9]{64}",
+                "hash": r"(?i)[a-f0-9]{32}|[a-f0-9]{40}|[a-f0-9]{64}",
+            }
+            if not re.fullmatch(hash_patterns[self.type], value):
+                raise ValidationError(
+                    {"value": f"Invalid {self.type} hash format."}
+                )
         elif self.type == "cve":
             if not re.fullmatch(r"(?i)CVE-\d{4}-\d{4,7}", value):
                 raise ValidationError({"value": "Invalid CVE format."})
