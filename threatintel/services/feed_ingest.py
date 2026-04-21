@@ -43,10 +43,12 @@ def _is_ip_address(value):
 
 
 def _upsert_ioc(value, ioc_type, source, threat_score=0, tags=None):
+    normalized_value = IOC.normalize_for_type(ioc_type, value)
+    normalized_source = str(source).strip().lower()
     ioc, created = IOC.objects.get_or_create(
-        value=value,
+        value=normalized_value,
         type=ioc_type,
-        source=source,
+        source=normalized_source,
         defaults={"threat_score": threat_score, "tags": tags or []},
     )
     if not created:

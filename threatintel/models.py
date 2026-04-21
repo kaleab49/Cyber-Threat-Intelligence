@@ -2,7 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 import ipaddress
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 import uuid
 
 
@@ -25,11 +25,40 @@ class IOC(models.Model):
     last_seen = models.DateTimeField(auto_now=True)
     tags = models.JSONField(blank=True, null=True)
 
+    @staticmethod
+    def normalize_for_type(ioc_type, value):
+        normalized = str(value).strip()
+
+        if ioc_type == "domain":
+            return normalized.rstrip(".").lower()
+        if ioc_type == "url":
+            parsed = urlparse(normalized)
+            scheme = parsed.scheme.lower()
+            hostname = (parsed.hostname or "").lower()
+            port = parsed.port
+            if port and not (
+                (scheme == "http" and port == 80) or (scheme == "https" and port == 443)
+            ):
+                netloc = f"{hostname}:{port}"
+            else:
+                netloc = hostname
+            path = parsed.path or "/"
+            return urlunparse((scheme, netloc, path, "", parsed.query, "")).strip()
+        if ioc_type == "hash":
+            return normalized.lower()
+        if ioc_type == "cve":
+            return normalized.upper()
+        if ioc_type == "email":
+            return normalized.lower()
+        return normalized
+
     def clean(self):
         if not self.value:
             raise ValidationError({"value": "IOC value cannot be empty."})
 
-        value = str(self.value).strip()
+        self.value = self.normalize_for_type(self.type, self.value)
+        self.source = str(self.source).strip().lower()
+        value = self.value
 
         if self.type == "ip":
             try:
