@@ -104,6 +104,14 @@ class IOC(models.Model):
         self.full_clean()
         super().save(*args, **kwargs)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["value", "type", "source"],
+                name="unique_ioc_value_type_source",
+            )
+        ]
+
     def __str__(self):
         return f"{self.value} ({self.type})"
 
