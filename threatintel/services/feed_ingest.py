@@ -1,8 +1,10 @@
 import ipaddress
+import re
 from datetime import datetime
 from urllib.parse import urlparse
 
 import requests
+from bs4 import BeautifulSoup
 from django.utils import timezone
 
 from threatintel.models import Event, IOC
@@ -10,6 +12,7 @@ from threatintel.models import Event, IOC
 
 URLHAUS_RECENT_URL = "https://urlhaus-api.abuse.ch/v1/urls/recent/"
 CIRCL_CVE_URL = "https://cve.circl.lu/api/cve/"
+CISA_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 
 
 def _parse_timestamp(value):
@@ -43,10 +46,12 @@ def _is_ip_address(value):
 
 
 def _upsert_ioc(value, ioc_type, source, threat_score=0, tags=None):
+    normalized_value = IOC.normalize_for_type(ioc_type, value)
+    normalized_source = str(source).strip().lower()
     ioc, created = IOC.objects.get_or_create(
-        value=value,
+        value=normalized_value,
         type=ioc_type,
-        source=source,
+        source=normalized_source,
         defaults={"threat_score": threat_score, "tags": tags or []},
     )
     if not created:
@@ -63,6 +68,26 @@ def _upsert_ioc(value, ioc_type, source, threat_score=0, tags=None):
         if updated:
             ioc.save(update_fields=["threat_score", "tags", "last_seen"])
     return ioc
+
+
+def _extract_iocs_from_text(text):
+    if not text:
+        return []
+
+    patterns = {
+        "ip": r"\b(?:\d{1,3}\.){3}\d{1,3}\b",
+        "domain": r"\b(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,63}\b",
+        "url": r"\bhttps?://[^\s\"'<>]+",
+        "md5": r"\b[a-fA-F0-9]{32}\b",
+        "sha1": r"\b[a-fA-F0-9]{40}\b",
+        "sha256": r"\b[a-fA-F0-9]{64}\b",
+        "cve": r"\bCVE-\d{4}-\d{4,7}\b",
+    }
+    extracted = []
+    for ioc_type, pattern in patterns.items():
+        for match in re.finditer(pattern, text, flags=re.IGNORECASE):
+            extracted.append((ioc_type, match.group(0)))
+    return extracted
 
 
 def ingest_urlhaus_recent(limit=100):
@@ -122,6 +147,79 @@ def ingest_urlhaus_recent(limit=100):
         "requested": min(int(limit), 1000),
         "events_created": created_events,
         "ioc_processed": created_iocs,
+    }
+
+
+def ingest_cisa_kev(limit=100):
+    response = requests.get(CISA_KEV_URL, timeout=20)
+    response.raise_for_status()
+    payload = response.json()
+    vulnerabilities = payload.get("vulnerabilities", [])[: max(1, min(int(limit), 2000))]
+
+    created_events = 0
+    ioc_processed = 0
+
+    for item in vulnerabilities:
+        cve = (item.get("cveID") or "").strip()
+        if not cve:
+            continue
+
+        Event.objects.create(
+            source="cisa-kev",
+            raw_data=cve,
+            parsed_data=item,
+            timestamp=timezone.now(),
+        )
+        created_events += 1
+
+        _upsert_ioc(
+            value=cve,
+            ioc_type="cve",
+            source="cisa-kev",
+            threat_score=95,
+            tags=["kev", "cisa"],
+        )
+        ioc_processed += 1
+
+    return {
+        "source": "cisa-kev",
+        "requested": min(int(limit), 2000),
+        "events_created": created_events,
+        "ioc_processed": ioc_processed,
+    }
+
+
+def scrape_ioc_page(url, source="web-scrape", limit=500):
+    response = requests.get(url, timeout=20)
+    response.raise_for_status()
+    html = response.text
+
+    soup = BeautifulSoup(html, "html.parser")
+    text = soup.get_text(separator=" ", strip=True)
+    extracted = _extract_iocs_from_text(text)[: max(1, min(int(limit), 5000))]
+
+    Event.objects.create(
+        source=source,
+        raw_data=url,
+        parsed_data={"url": url, "matched_count": len(extracted)},
+        timestamp=timezone.now(),
+    )
+
+    ioc_processed = 0
+    for ioc_type, value in extracted:
+        _upsert_ioc(
+            value=value,
+            ioc_type=ioc_type,
+            source=source,
+            threat_score=60,
+            tags=["scraped"],
+        )
+        ioc_processed += 1
+
+    return {
+        "source": source,
+        "url": url,
+        "ioc_processed": ioc_processed,
     }
 
 

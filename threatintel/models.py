@@ -1,4 +1,8 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+import ipaddress
+import re
+from urllib.parse import urlparse, urlunparse
 import uuid
 
 
@@ -8,9 +12,13 @@ class IOC(models.Model):
         ('domain', 'Domain'),
         ('url', 'URL'),
         ('hash', 'Hash'),
+        ('md5', 'MD5'),
+        ('sha1', 'SHA1'),
+        ('sha256', 'SHA256'),
         ('cve', 'CVE'),
         ('email', 'Email'),
     ]
+    HASH_TYPES = {"hash", "md5", "sha1", "sha256"}
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     value = models.CharField(max_length=255, db_index=True)
@@ -20,6 +28,89 @@ class IOC(models.Model):
     first_seen = models.DateTimeField(auto_now_add=True)
     last_seen = models.DateTimeField(auto_now=True)
     tags = models.JSONField(blank=True, null=True)
+
+    @staticmethod
+    def normalize_for_type(ioc_type, value):
+        normalized = str(value).strip()
+
+        if ioc_type == "domain":
+            return normalized.rstrip(".").lower()
+        if ioc_type == "url":
+            parsed = urlparse(normalized)
+            scheme = parsed.scheme.lower()
+            hostname = (parsed.hostname or "").lower()
+            port = parsed.port
+            if port and not (
+                (scheme == "http" and port == 80) or (scheme == "https" and port == 443)
+            ):
+                netloc = f"{hostname}:{port}"
+            else:
+                netloc = hostname
+            path = parsed.path or "/"
+            return urlunparse((scheme, netloc, path, "", parsed.query, "")).strip()
+        if ioc_type in IOC.HASH_TYPES:
+            return normalized.lower()
+        if ioc_type == "cve":
+            return normalized.upper()
+        if ioc_type == "email":
+            return normalized.lower()
+        return normalized
+
+    def clean(self):
+        if not self.value:
+            raise ValidationError({"value": "IOC value cannot be empty."})
+
+        self.value = self.normalize_for_type(self.type, self.value)
+        self.source = str(self.source).strip().lower()
+        value = self.value
+
+        if self.type == "ip":
+            try:
+                ipaddress.ip_address(value)
+            except ValueError as exc:
+                raise ValidationError({"value": "Invalid IP address format."}) from exc
+        elif self.type == "domain":
+            domain_regex = re.compile(
+                r"^(?=.{1,253}$)(?!-)(?:[a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,63}$"
+            )
+            if not domain_regex.match(value):
+                raise ValidationError({"value": "Invalid domain format."})
+        elif self.type == "url":
+            parsed = urlparse(value)
+            if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+                raise ValidationError({"value": "Invalid URL format."})
+        elif self.type in self.HASH_TYPES:
+            hash_patterns = {
+                "md5": r"(?i)[a-f0-9]{32}",
+                "sha1": r"(?i)[a-f0-9]{40}",
+                "sha256": r"(?i)[a-f0-9]{64}",
+                "hash": r"(?i)[a-f0-9]{32}|[a-f0-9]{40}|[a-f0-9]{64}",
+            }
+            if not re.fullmatch(hash_patterns[self.type], value):
+                raise ValidationError(
+                    {"value": f"Invalid {self.type} hash format."}
+                )
+        elif self.type == "cve":
+            if not re.fullmatch(r"(?i)CVE-\d{4}-\d{4,7}", value):
+                raise ValidationError({"value": "Invalid CVE format."})
+        elif self.type == "email":
+            email_regex = re.compile(
+                r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+            )
+            if not email_regex.match(value):
+                raise ValidationError({"value": "Invalid email format."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["value", "type", "source"],
+                name="unique_ioc_value_type_source",
+            )
+        ]
 
     def __str__(self):
         return f"{self.value} ({self.type})"
