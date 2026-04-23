@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from django.utils import timezone
 
 from threatintel.models import Event, IOC
+from threatintel.services.scoring import get_source_score
 
 
 URLHAUS_RECENT_URL = "https://urlhaus-api.abuse.ch/v1/urls/recent/"
@@ -99,6 +100,8 @@ def ingest_urlhaus_recent(limit=100):
     created_events = 0
     created_iocs = 0
 
+    base_score = get_source_score("urlhaus")
+
     for item in urls:
         url_value = (item.get("url") or "").strip()
         if not url_value:
@@ -117,7 +120,7 @@ def ingest_urlhaus_recent(limit=100):
             value=url_value,
             ioc_type="url",
             source="urlhaus",
-            threat_score=80,
+            threat_score=base_score,
             tags=["malicious", "urlhaus"],
         )
         if ioc:
@@ -130,7 +133,7 @@ def ingest_urlhaus_recent(limit=100):
                     value=host,
                     ioc_type="ip",
                     source="urlhaus",
-                    threat_score=70,
+                    threat_score=base_score,
                     tags=["urlhost", "urlhaus"],
                 )
             else:
@@ -138,7 +141,7 @@ def ingest_urlhaus_recent(limit=100):
                     value=host,
                     ioc_type="domain",
                     source="urlhaus",
-                    threat_score=70,
+                    threat_score=base_score,
                     tags=["urlhost", "urlhaus"],
                 )
 
@@ -159,6 +162,8 @@ def ingest_cisa_kev(limit=100):
     created_events = 0
     ioc_processed = 0
 
+    base_score = get_source_score("cisa-kev")
+
     for item in vulnerabilities:
         cve = (item.get("cveID") or "").strip()
         if not cve:
@@ -176,7 +181,7 @@ def ingest_cisa_kev(limit=100):
             value=cve,
             ioc_type="cve",
             source="cisa-kev",
-            threat_score=95,
+            threat_score=base_score,
             tags=["kev", "cisa"],
         )
         ioc_processed += 1
@@ -205,13 +210,15 @@ def scrape_ioc_page(url, source="web-scrape", limit=500):
         timestamp=timezone.now(),
     )
 
+    base_score = get_source_score(source)
+
     ioc_processed = 0
     for ioc_type, value in extracted:
         _upsert_ioc(
             value=value,
             ioc_type=ioc_type,
             source=source,
-            threat_score=60,
+            threat_score=base_score,
             tags=["scraped"],
         )
         ioc_processed += 1
