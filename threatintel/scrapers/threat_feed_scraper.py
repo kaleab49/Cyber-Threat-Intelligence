@@ -3,9 +3,7 @@ from threatintel.services.ingestion_service import ingest_event
 
 
 def fetch_threat_feed():
-    """
-    Simple threat feed scraper
-    """
+    
 
     url = "https://pastebin.com/raw/your-test-link"  # temporary test source
 
