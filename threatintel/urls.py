@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .view import *
+from threatintel.api.graph_api import graph_data
 from threatintel.api.analytics_api import dashboard_stats
 from threatintel.api.ioc_api import extract_iocs_from_text
 from threatintel.api.feed_ingest_api import (
@@ -27,4 +28,5 @@ urlpatterns = [
     path('feeds/ingest/cisa/kev/', ingest_cisa_kev_api, name='ingest-cisa-kev'),
     path('feeds/ingest/scrape/', scrape_ioc_page_api, name='ingest-scrape-ioc-page'),
     path('feeds/enrich/circl/cves/', enrich_cves_circl_api, name='enrich-cves-circl'),
+    path('graph/', graph_data, name='graph-data'),
 ]
