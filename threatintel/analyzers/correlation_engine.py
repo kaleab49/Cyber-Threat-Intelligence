@@ -1,15 +1,32 @@
-from threatintel.models import IOC, Relationship
+# threatintel/analyzers/correlation_engine.py
 
-def correlate_iocs():
-    iocs = IOC.objects.all()
+from threatintel.models import Relationship
 
-    for ioc in iocs:
-        # Find same-value IOCs from different sources
-        related_iocs = IOC.objects.filter(value=ioc.value).exclude(id=ioc.id)
 
-        for target in related_iocs:
-            Relationship.objects.get_or_create(
-                source_ioc=ioc,
-                target_ioc=target,
+def correlate_event(event, iocs):
+    """
+    Create relationships between IOCs that appear in the same event.
+    """
+
+    created_links = []
+
+    iocs = list(iocs)
+
+    for i in range(len(iocs)):
+        for j in range(i + 1, len(iocs)):
+
+            ioc_a = iocs[i]
+            ioc_b = iocs[j]
+
+            if ioc_a.id == ioc_b.id:
+                continue
+
+            rel, created = Relationship.objects.get_or_create(
+                source_ioc=ioc_a,
+                target_ioc=ioc_b,
                 relation_type="related"
             )
+
+            created_links.append(rel)
+
+    return created_links
