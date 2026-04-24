@@ -16,11 +16,10 @@ The project aims to streamline the process of cyber threat intelligence by provi
 
 ## Architecture
 
-CyberIntell is built using Python and leverages libraries such as:
-- Data processing: Pandas, NumPy
-- Visualization: Matplotlib, Plotly
-- Web framework: Flask or Django for dashboards
-- Database: SQLite or PostgreSQL for data storage
+This repo is a **Django + Django REST Framework backend** and a **Vite + React frontend**:
+
+- Backend: `CTI/` (project) + `threatintel/` (app)
+- Frontend: `frontend/`
 
 The architecture consists of:
 - Data Ingestion Module: Handles collection from sources.
@@ -30,8 +29,8 @@ The architecture consists of:
 ## Installation
 
 ### Prerequisites
-- Python 3.8 or higher
-- pip for package management
+- Python 3.10+ (Debian/Ubuntu typically use `python3`)
+- Node.js 18+ (for the React frontend)
 
 ### Steps
 1. Clone the repository:
@@ -42,34 +41,52 @@ The architecture consists of:
    ```
    cd cyberintell
    ```
-3. Install dependencies:
+3. Install backend dependencies:
    ```
-   pip install -r requirements.txt
+   python3 -m pip install -r requirements.txt
    ```
-
-## Configuration
-
-Create a configuration file `config.yaml` in the root directory with your API keys and settings:
-
-```yaml
-data_sources:
-  - name: "Source1"
-    api_key: "your_api_key"
-    endpoint: "https://api.source1.com/data"
-
-analysis:
-  threshold: 0.8
-  models: ["anomaly_detection", "pattern_recognition"]
-```
+4. Run migrations:
+   ```
+   python3 manage.py migrate
+   ```
 
 ## Usage
 
-1. Configure your settings in `config.yaml`.
-2. Run the main script to start data collection and analysis:
-   ```
-   python main.py
-   ```
-3. Access the visualization dashboard at `http://localhost:5000` (assuming Flask is used).
+### Run the backend API (Django)
+
+Start the API server on port 8000:
+
+```
+python3 manage.py runserver 8000
+```
+
+API base is at `http://localhost:8000/api/`.
+
+### Ingest data (backend)
+
+You can ingest from URLhaus + CISA KEV using the management command:
+
+```
+python3 manage.py run_feed_ingest --urlhaus-limit 100 --kev-limit 100
+```
+
+Or via API endpoints:
+
+- `POST /api/feeds/ingest/urlhaus/recent/`
+- `POST /api/feeds/ingest/cisa/kev/`
+- `POST /api/feeds/ingest/scrape/`
+
+### Run the frontend (React)
+
+In a separate terminal:
+
+```
+cd frontend
+npm install
+npm run dev
+```
+
+The Vite dev server proxies `/api` to `http://localhost:8000`, so the UI can call the backend without extra CORS config.
 
 ### Command-Line Options
 - `--config`: Specify a custom config file.
@@ -78,9 +95,9 @@ analysis:
 ## API
 
 CyberIntell provides a REST API for programmatic access:
-- `GET /data`: Retrieve collected data.
-- `POST /analyze`: Submit data for analysis.
-- `GET /reports`: Fetch generated reports.
+- `GET /api/iocs/`: List stored IOCs (supports `search` and `source` query params)
+- `GET /api/events/`: List ingested events
+- `GET /api/analytics/dashboard/`: High-level dashboard stats
 
 Refer to the API documentation in `docs/api.md` for details.
 

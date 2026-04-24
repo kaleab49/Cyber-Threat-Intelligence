@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 import ipaddress
 import re
 from urllib.parse import urlparse, urlunparse
@@ -122,7 +123,7 @@ class Event(models.Model):
     source = models.CharField(max_length=100)
     raw_data = models.TextField()
     parsed_data = models.JSONField(blank=True, null=True)
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
