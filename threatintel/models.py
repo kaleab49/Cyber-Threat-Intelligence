@@ -36,6 +36,7 @@ class IOCManager(models.Manager):
 
 # IOC MODEL
 
+
 class IOC(models.Model):
 
     IOC_TYPES = [
