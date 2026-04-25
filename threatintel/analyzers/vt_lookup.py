@@ -15,3 +15,5 @@ def vt_lookup(hash_value):
             "suspicious": data["data"]["attributes"]["last_analysis_stats"]["suspicious"],
         }
     return {} 
+
+    
