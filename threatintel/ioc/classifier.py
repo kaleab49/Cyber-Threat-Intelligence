@@ -2,8 +2,6 @@ def classify_ioc(ioc_type, value):
     """
     Simple rule-based classification
     """
-
-    # Default score
     score = 10
 
     if ioc_type == "ip":

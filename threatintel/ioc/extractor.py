@@ -14,11 +14,8 @@ PATTERNS = {
 
 def extract_iocs(text):
     results = []
-
     for ioc_type, pattern in PATTERNS.items():
         matches = re.findall(pattern, text)
-
         for match in matches:
-            results.append((ioc_type, match))  # ✅ FIXED HERE
-
+            results.append((ioc_type, match)) 
     return results

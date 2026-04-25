@@ -32,7 +32,6 @@ def ingest_event(source, raw_data):
             )
 
             if not created:
-                # 🔥 update existing IOC instead of duplicating
                 obj.last_seen = obj.last_seen  # auto updated anyway
                 obj.threat_score = max(obj.threat_score, score)
                 obj.save()
