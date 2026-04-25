@@ -7,9 +7,9 @@ from urllib.parse import urlparse, urlunparse
 import uuid
 
 
-# =========================
+
 # IOC MANAGER
-# =========================
+
 class IOCManager(models.Manager):
 
     def upsert_ioc(self, value, ioc_type, source, threat_score=0, tags=None):
@@ -34,9 +34,8 @@ class IOCManager(models.Manager):
         return obj
 
 
-# =========================
 # IOC MODEL
-# =========================
+
 class IOC(models.Model):
 
     IOC_TYPES = [
@@ -109,9 +108,7 @@ class IOC(models.Model):
 
         return normalized
 
-    # =========================
     # VALIDATION ENGINE
-    # =========================
     def clean(self):
 
         if not self.value:
@@ -167,9 +164,9 @@ class IOC(models.Model):
         super().save(*args, **kwargs)
 
 
-# =========================
+
 # EVENT LOGGING
-# =========================
+
 class Event(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     source = models.CharField(max_length=100)
@@ -194,9 +191,9 @@ class ThreatFeed(models.Model):
         return self.name
 
 
-# =========================
+
 # MALWARE
-# =========================
+
 class Malware(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=True, null=True)
@@ -210,9 +207,8 @@ class Malware(models.Model):
         return self.hash_value
 
 
-# =========================
 # THREAT ACTOR
-# =========================
+
 class ThreatActor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
@@ -226,7 +222,7 @@ class ThreatActor(models.Model):
 
 # =========================
 # CAMPAIGN
-# =========================
+
 class Campaign(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
