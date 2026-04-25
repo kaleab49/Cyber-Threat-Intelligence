@@ -1,9 +1,24 @@
+import requests
 from threatintel.services.ingestion_service import ingest_event
 
 
 def fetch_threat_feed():
-    data = "Attack from 45.33.12.9 using CVE-2024-1234 and hash abcdef1234567890"
+    url = "https://pastebin.com/raw/your-test-link"
 
-    ingest_event("test_feed", data)
+    try:
+        response = requests.get(url, timeout=10)
 
-    print("Test data ingested successfully")
+        if response.status_code == 200:
+            data = response.text
+
+            ingest_event("threat_feed", data)
+
+            print("✔ Data ingested successfully")
+            return "success"
+
+        print(f"Failed: {response.status_code}")
+        return "failed"
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return "error"
