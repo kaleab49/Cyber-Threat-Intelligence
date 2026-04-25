@@ -34,8 +34,6 @@ class IOCManager(models.Manager):
         return obj
 
 
-# IOC MODEL
-
 
 class IOC(models.Model):
 
