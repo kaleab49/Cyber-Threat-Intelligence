@@ -179,9 +179,9 @@ class Event(models.Model):
         return f"Event from {self.source}"
 
 
-# =========================
+
 # THREAT FEEDS
-# =========================
+
 class ThreatFeed(models.Model):
     name = models.CharField(max_length=255)
     url = models.URLField()
