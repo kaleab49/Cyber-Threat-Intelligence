@@ -2,6 +2,7 @@ SOURCE_SCORES = {
     "cisa-kev": 95,
     "urlhaus": 80,
     "web-scrape": 60,
+    "twitter": 70,
 }
 
 

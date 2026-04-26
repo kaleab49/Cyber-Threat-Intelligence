@@ -10,6 +10,11 @@ from django.utils import timezone
 from threatintel.models import Event, IOC
 from threatintel.services.scoring import get_source_score
 
+try:
+    import snscrape.modules.twitter as sntwitter
+except ImportError:  # pragma: no cover - optional dependency
+    sntwitter = None
+
 
 URLHAUS_RECENT_URL = "https://urlhaus-api.abuse.ch/v1/urls/recent/"
 CIRCL_CVE_URL = "https://cve.circl.lu/api/cve/"
@@ -226,6 +231,62 @@ def scrape_ioc_page(url, source="web-scrape", limit=500):
     return {
         "source": source,
         "url": url,
+        "ioc_processed": ioc_processed,
+    }
+
+
+def ingest_twitter_user(username, limit=50):
+    if sntwitter is None:
+        raise RuntimeError("Twitter scraping requires snscrape. Install with: pip install snscrape")
+
+    normalized_user = str(username).strip().lstrip("@")
+    if not normalized_user:
+        return {"source": "twitter", "username": username, "tweets_scanned": 0, "ioc_processed": 0}
+
+    max_items = max(1, min(int(limit), 500))
+    query = f"from:{normalized_user}"
+
+    ioc_processed = 0
+    tweets_scanned = 0
+    base_score = get_source_score("twitter")
+
+    for tweet in sntwitter.TwitterSearchScraper(query).get_items():
+        if tweets_scanned >= max_items:
+            break
+
+        tweet_text = (getattr(tweet, "rawContent", "") or "").strip()
+        if not tweet_text:
+            tweets_scanned += 1
+            continue
+
+        Event.objects.create(
+            source="twitter",
+            raw_data=f"https://x.com/{normalized_user}/status/{tweet.id}",
+            parsed_data={
+                "id": str(tweet.id),
+                "username": normalized_user,
+                "date": tweet.date.isoformat() if getattr(tweet, "date", None) else None,
+                "text": tweet_text,
+            },
+            timestamp=_parse_timestamp(getattr(tweet, "date", None)),
+        )
+
+        for ioc_type, value in _extract_iocs_from_text(tweet_text):
+            _upsert_ioc(
+                value=value,
+                ioc_type=ioc_type,
+                source="twitter",
+                threat_score=base_score,
+                tags=["tweet", "osint"],
+            )
+            ioc_processed += 1
+
+        tweets_scanned += 1
+
+    return {
+        "source": "twitter",
+        "username": normalized_user,
+        "tweets_scanned": tweets_scanned,
         "ioc_processed": ioc_processed,
     }
 
