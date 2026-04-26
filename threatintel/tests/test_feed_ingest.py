@@ -1,4 +1,5 @@
 from unittest.mock import Mock, patch
+from datetime import datetime, timezone
 
 from django.test import TestCase
 
@@ -6,12 +7,40 @@ from threatintel.models import IOC
 from threatintel.services.feed_ingest import (
     _extract_iocs_from_text,
     ingest_cisa_kev,
+    ingest_twitter_user,
     ingest_urlhaus_recent,
 )
 from threatintel.services.scoring import get_source_score
 
 
 class FeedIngestTests(TestCase):
+    @patch("threatintel.services.feed_ingest.sntwitter")
+    def test_ingest_twitter_user_extracts_iocs(self, mocked_sntwitter):
+        class DummyTweet:
+            def __init__(self, tweet_id, raw_content, date):
+                self.id = tweet_id
+                self.rawContent = raw_content
+                self.date = date
+
+        mocked_scraper = Mock()
+        mocked_scraper.get_items.return_value = iter(
+            [
+                DummyTweet(
+                    tweet_id=12345,
+                    raw_content="IOC seen at 8.8.8.8 and CVE-2026-12345",
+                    date=datetime(2026, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                )
+            ]
+        )
+        mocked_sntwitter.TwitterSearchScraper.return_value = mocked_scraper
+
+        result = ingest_twitter_user(username="@threatfeed", limit=10)
+
+        self.assertEqual(result["tweets_scanned"], 1)
+        self.assertEqual(result["ioc_processed"], 2)
+        self.assertTrue(IOC.objects.filter(type="ip", source="twitter", value="8.8.8.8").exists())
+        self.assertTrue(IOC.objects.filter(type="cve", source="twitter", value="CVE-2026-12345").exists())
+
     def test_extract_iocs_from_text(self):
         text = "Visit http://evil.test and report CVE-2024-12345 from 1.2.3.4 hash a" + ("b" * 63)
         extracted = _extract_iocs_from_text(text)
