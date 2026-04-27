@@ -1,4 +1,3 @@
-# threatintel/services/enrichment.py
 
 def enrich_ioc(ioc):
     if not isinstance(ioc, dict):

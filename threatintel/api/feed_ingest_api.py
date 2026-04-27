@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from threatintel.services.feed_ingest import (
+from threatintel.services.ingestion.feed_ingest import (
     enrich_cves_from_circl,
     ingest_cisa_kev,
     ingest_urlhaus_recent,

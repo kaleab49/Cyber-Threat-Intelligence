@@ -1,5 +1,5 @@
 import requests
-from threatintel.services.ingestion_service import ingest_event
+from threatintel.services.ingestion.ingestion_service import ingest_event
 
 
 def fetch_threat_feed():

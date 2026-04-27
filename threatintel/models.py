@@ -62,7 +62,7 @@ class IOC(models.Model):
     last_seen = models.DateTimeField(auto_now=True)
 
     tags = models.JSONField(blank=True, null=True)
-
+    times_seen = models.IntegerField(default=1)
     objects = IOCManager()
 
     def __str__(self):
