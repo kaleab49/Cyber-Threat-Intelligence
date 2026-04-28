@@ -4,6 +4,7 @@ def correlate_event(event, iocs):
 
     for ioc in iocs:
         existing = IOC.objects.filter(value=ioc.value).exclude(id=ioc.id)
+        existing = IOC.objects.filter(value=ioc.value).first()
 
         for match in existing:
             rel = Relationship.objects.create(
