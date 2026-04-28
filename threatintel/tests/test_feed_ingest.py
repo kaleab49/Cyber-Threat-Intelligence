@@ -10,7 +10,7 @@ from threatintel.services.ingestion.feed_ingest import (
     ingest_twitter_user,
     ingest_urlhaus_recent,
 )
-from threatintel.services.scoring_service import get_source_score
+from threatintel.services.scoring.scoring_service import get_source_score
 
 
 class FeedIngestTests(TestCase):
