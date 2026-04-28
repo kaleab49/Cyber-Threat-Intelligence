@@ -3,7 +3,7 @@
 from threatintel.services.ingestion.ingestion_service import ingest_event
 from services.enrichment_service import enrich_iocs
 from threatintel.services.colleration.correlation_service import correlate_event
-from threatintel.services.scoring_service import calculate_scores
+from threatintel.services.scoring.scoring_service import calculate_scores
 
 
 def process_raw_event(source, raw_data):

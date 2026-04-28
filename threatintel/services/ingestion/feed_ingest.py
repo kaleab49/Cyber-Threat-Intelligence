@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from django.utils import timezone
 
 from threatintel.models import Event, IOC
-from threatintel.services.scoring_service import get_source_score
+from threatintel.services.scoring.scoring_service import get_source_score
 
 try:
     import snscrape.modules.twitter as sntwitter

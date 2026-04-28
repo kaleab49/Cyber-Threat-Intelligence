@@ -1,4 +1,3 @@
-
 def enrich_ioc(ioc):
     if not isinstance(ioc, dict):
         return {"error": "invalid ioc"}
@@ -13,3 +12,10 @@ def enrich_ioc(ioc):
         ioc["score"] = 50
 
     return ioc
+
+
+def enrich_iocs(iocs):
+    if not isinstance(iocs, list):
+        return [{"error": "invalid input"}]
+
+    return [enrich_ioc(ioc) for ioc in iocs]
