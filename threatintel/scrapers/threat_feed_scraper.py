@@ -1,24 +1,23 @@
 import requests
-from threatintel.services.ingestion.ingestion_service import ingest_event
-
 
 def fetch_threat_feed():
     url = "https://pastebin.com/raw/your-test-link"
 
     try:
         response = requests.get(url, timeout=10)
+        response.raise_for_status()
 
-        if response.status_code == 200:
-            data = response.text
+        text = response.text
 
-            ingest_event("threat_feed", data)
+        # TEMP: convert raw text → IOC format (placeholder logic)
+        iocs = []
 
-            print("✔ Data ingested successfully")
-            return "success"
+        for word in text.split():
+            if word.count(".") == 3:  # naive IP detection
+                iocs.append({"type": "ip", "value": word})
 
-        print(f"Failed: {response.status_code}")
-        return "failed"
+        return iocs
 
     except Exception as e:
-        print(f"Error: {e}")
-        return "error"
+        print(f"Failed threat_feed: {e}")
+        return []
