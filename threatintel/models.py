@@ -34,7 +34,6 @@ class IOCManager(models.Manager):
         return obj
 
 
-
 class IOC(models.Model):
 
     IOC_TYPES = [
@@ -63,8 +62,16 @@ class IOC(models.Model):
 
     tags = models.JSONField(blank=True, null=True)
     times_seen = models.IntegerField(default=1)
+
     objects = IOCManager()
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['value', 'type'],
+                name='unique_ioc_value_type'
+            )
+        ]
     def __str__(self):
         return f"{self.value} ({self.type})"
 
@@ -219,7 +226,6 @@ class ThreatActor(models.Model):
         return self.name
 
 
-# =========================
 # CAMPAIGN
 
 class Campaign(models.Model):
@@ -233,9 +239,8 @@ class Campaign(models.Model):
         return self.name
 
 
-# =========================
 # RELATIONSHIP GRAPH
-# =========================
+
 class Relationship(models.Model):
 
     RELATION_TYPES = [
@@ -266,3 +271,5 @@ class Relationship(models.Model):
 
     def __str__(self):
         return f"{self.source_ioc} -> {self.target_ioc} ({self.relation_type})"
+    
+ 
