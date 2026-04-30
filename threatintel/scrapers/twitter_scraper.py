@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 
 def fetch_twitter():
-    usernames = ["elonmusk"]  # extend later
+    usernames = ["elonmusk"] 
 
     iocs = []
 
@@ -22,7 +22,6 @@ def fetch_twitter():
             for t in tweets:
                 text = t.get_text()
 
-                # simple IOC extraction
                 if "http" in text:
                     iocs.append({"value": text, "type": "url", "source": "twitter"})
 

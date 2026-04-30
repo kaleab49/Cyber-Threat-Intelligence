@@ -9,7 +9,7 @@ def graph_data(request):
     nodes = []
     edges = []
 
-    # Nodes
+    
     for ioc in IOC.objects.all():
         nodes.append({
             "id": ioc.value,
@@ -17,7 +17,6 @@ def graph_data(request):
             "score": ioc.threat_score
         })
 
-    # Edges
     for rel in Relationship.objects.all():
         edges.append({
             "source": rel.source_ioc.value,
