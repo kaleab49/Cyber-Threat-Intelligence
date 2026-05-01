@@ -1,34 +1,36 @@
-# twitter_scraper.py
 import requests
-from bs4 import BeautifulSoup
 
+BEARER_TOKEN = "YOUR_TOKEN"
 
 def fetch_twitter():
-    usernames = ["elonmusk"] 
+    url = "https://api.twitter.com/2/tweets/search/recent"
 
-    iocs = []
+    headers = {
+        "Authorization": f"Bearer {BEARER_TOKEN}"
+    }
 
-    for user in usernames:
-        try:
-            url = f"https://nitter.net/{user}"
-            res = requests.get(url, timeout=10)
+    params = {
+        "query": "malware OR CVE OR breach",
+        "max_results": 10
+    }
 
-            if res.status_code != 200:
-                continue
+    try:
+        res = requests.get(url, headers=headers, params=params)
+        res.raise_for_status()
 
-            soup = BeautifulSoup(res.text, "html.parser")
-            tweets = soup.find_all("div", class_="timeline-item")[:10]
+        data = res.json()
 
-            for t in tweets:
-                text = t.get_text()
+        results = []
 
-                if "http" in text:
-                    iocs.append({"value": text, "type": "url", "source": "twitter"})
+        for tweet in data.get("data", []):
+            results.append({
+                "type": "text",
+                "value": tweet["text"],
+                "source": "twitter"
+            })
 
-                if "CVE-" in text:
-                    iocs.append({"value": text, "type": "cve", "source": "twitter"})
+        return results
 
-        except Exception:
-            continue
-
-    return iocs
+    except Exception as e:
+        print("twitter error:", e)
+        return []

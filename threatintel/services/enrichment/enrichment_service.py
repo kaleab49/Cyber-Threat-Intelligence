@@ -3,19 +3,19 @@ def enrich_ioc(ioc):
         return {"error": "invalid ioc"}
 
     ioc_type = ioc.get("type")
+    score = 50
 
     if ioc_type == "ip":
-        ioc["score"] = 70
+        score = 70
     elif ioc_type == "cve":
-        ioc["score"] = 90
-    else:
-        ioc["score"] = 50
+        score = 90
 
+    ioc["score"] = score
     return ioc
 
 
 def enrich_iocs(iocs):
     if not isinstance(iocs, list):
-        return [{"error": "invalid input"}]
+        return []
 
-    return [enrich_ioc(ioc) for ioc in iocs]
+    return [enrich_ioc(ioc) for ioc in iocs if isinstance(ioc, dict)]

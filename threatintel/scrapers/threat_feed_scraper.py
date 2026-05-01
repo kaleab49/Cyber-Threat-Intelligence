@@ -1,23 +1,26 @@
-import requests
+import feedparser
 
 def fetch_threat_feed():
-    url = "https://pastebin.com/raw/your-test-link"
+    feeds = [
+        "https://www.cert.ssi.gouv.fr/feed/",
+        "https://www.cisa.gov/cybersecurity-advisories/all.xml",
+        "https://otx.alienvault.com/api/v1/indicators/export"
+    ]
 
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
+    results = []
 
-        text = response.text
+    for url in feeds:
+        try:
+            data = feedparser.parse(url)
 
-        # TEMP: convert raw text → IOC format (placeholder logic)
-        iocs = []
+            for entry in data.entries[:20]:
+                results.append({
+                    "type": "url",
+                    "value": entry.get("title", ""),
+                    "source": "threat_feed",
+                })
 
-        for word in text.split():
-            if word.count(".") == 3:  # naive IP detection
-                iocs.append({"type": "ip", "value": word})
+        except Exception as e:
+            print("feed error:", e)
 
-        return iocs
-
-    except Exception as e:
-        print(f"Failed threat_feed: {e}")
-        return []
+    return results

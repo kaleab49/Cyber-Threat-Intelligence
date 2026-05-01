@@ -1,26 +1,33 @@
-import re
-
-IP_REGEX = r"\b(?:\d{1,3}\.){3}\d{1,3}\b"
-CVE_REGEX = r"\bCVE-\d{4}-\d{4,7}\b"
-
+import requests
+from bs4 import BeautifulSoup
 
 def fetch_pastebin():
-    text = "Attack from 8.8.8.8 using CVE-2024-1234"
+    url = "https://pastebin.com/archive"
 
-    iocs = []
+    try:
+        res = requests.get(url, timeout=10)
+        soup = BeautifulSoup(res.text, "html.parser")
 
-    for ip in re.findall(IP_REGEX, text):
-        iocs.append({
-            "type": "ip",
-            "value": ip,
-            "source": "pastebin"
-        })
+        results = []
 
-    for cve in re.findall(CVE_REGEX, text):
-        iocs.append({
-            "type": "cve",
-            "value": cve,
-            "source": "pastebin"
-        })
+        for link in soup.select(".maintable a")[:10]:
+            try:
+                paste_url = "https://pastebin.com" + link.get("href")
+                raw_url = paste_url.replace("/","/raw/")
 
-    return iocs
+                raw = requests.get(raw_url, timeout=10).text
+
+                results.append({
+                    "type": "text",
+                    "value": raw[:200],
+                    "source": "pastebin"
+                })
+
+            except:
+                continue
+
+        return results
+
+    except Exception as e:
+        print("pastebin error:", e)
+        return []
