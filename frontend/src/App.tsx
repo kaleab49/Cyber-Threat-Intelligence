@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import './App.css'
-import { fetchEvents, fetchIocs, fetchDashboardStats, ingestKev, ingestScrape, ingestUrlhaus, extractIocs } from './api'
+import {
+  fetchEvents, fetchIocs, fetchDashboardStats,
+  ingestKev, ingestScrape, ingestUrlhaus,
+  extractIocs, runAllScrapers, runScraper,
+} from './api'
 import type { EventItem, IOC, DashboardStats } from './api'
 
 type View = 'dashboard' | 'iocs' | 'events' | 'ingest' | 'extract'
@@ -41,7 +45,7 @@ export default function App() {
   const [error, setError] = useState('')
 
   const sources = useMemo(() => Array.from(new Set(iocs.map(i => i.source))).sort(), [iocs])
-  const types = useMemo(() => Array.from(new Set(iocs.map(i => i.type))).sort(), [iocs])
+  const types   = useMemo(() => Array.from(new Set(iocs.map(i => i.type))).sort(), [iocs])
 
   async function loadAll() {
     setLoading(true)
@@ -62,7 +66,7 @@ export default function App() {
     }
   }
 
-  useEffect(() => { loadAll() }, []) 
+  useEffect(() => { loadAll() }, []) // eslint-disable-line
 
   async function handleIngest(action: () => Promise<unknown>, label: string) {
     setLoading(true); setError(''); setMessage('')
@@ -100,10 +104,10 @@ export default function App() {
 
   const navItems: { id: View; label: string; icon: string }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: '⬡' },
-    { id: 'iocs', label: 'IOCs', icon: '◈' },
-    { id: 'events', label: 'Events', icon: '◎' },
-    { id: 'ingest', label: 'Ingest', icon: '⊕' },
-    { id: 'extract', label: 'Extract', icon: '⊗' },
+    { id: 'iocs',      label: 'IOCs',      icon: '◈' },
+    { id: 'events',    label: 'Events',    icon: '◎' },
+    { id: 'ingest',    label: 'Ingest',    icon: '⊕' },
+    { id: 'extract',   label: 'Extract',   icon: '⊗' },
   ]
 
   return (
@@ -137,11 +141,8 @@ export default function App() {
 
       {/* Main */}
       <main className="main">
-        {/* Topbar */}
         <div className="topbar">
-          <h1 className="page-title">
-            {navItems.find(n => n.id === view)?.label}
-          </h1>
+          <h1 className="page-title">{navItems.find(n => n.id === view)?.label}</h1>
           <div className="topbar-actions">
             {loading && <span className="spinner" />}
             <button className="btn-refresh" onClick={loadAll} disabled={loading}>↻ Refresh</button>
@@ -149,18 +150,18 @@ export default function App() {
         </div>
 
         {message && <div className="alert alert-ok">{message}</div>}
-        {error && <div className="alert alert-error">{error}</div>}
+        {error   && <div className="alert alert-error">{error}</div>}
 
         {/* ── DASHBOARD ── */}
         {view === 'dashboard' && stats && (
           <div className="view-dashboard">
             <div className="stats-grid">
-              <StatCard label="Total IOCs" value={stats.iocs.total} sub={`+${stats.iocs.last_24h} today`} accent="blue" />
-              <StatCard label="High Risk" value={stats.iocs.high_risk} sub="Score ≥ 75" accent="red" />
-              <StatCard label="Avg Score" value={stats.iocs.avg_threat_score} accent="yellow" />
-              <StatCard label="Events" value={stats.events.total} sub={`+${stats.events.last_24h} today`} accent="green" />
+              <StatCard label="Total IOCs"    value={stats.iocs.total}        sub={`+${stats.iocs.last_24h} today`}   accent="blue"   />
+              <StatCard label="High Risk"     value={stats.iocs.high_risk}    sub="Score ≥ 75"                        accent="red"    />
+              <StatCard label="Avg Score"     value={stats.iocs.avg_threat_score}                                     accent="yellow" />
+              <StatCard label="Events"        value={stats.events.total}      sub={`+${stats.events.last_24h} today`} accent="green"  />
               <StatCard label="Threat Actors" value={stats.threat_actors} />
-              <StatCard label="Malware" value={stats.malware} />
+              <StatCard label="Malware"       value={stats.malware} />
             </div>
 
             <div className="dashboard-grid">
@@ -171,10 +172,7 @@ export default function App() {
                     <div key={item.type} className="bar-row">
                       <TypeTag type={item.type} />
                       <div className="bar-track">
-                        <div
-                          className="bar-fill"
-                          style={{ width: `${Math.min(100, (item.count / stats.iocs.total) * 100)}%` }}
-                        />
+                        <div className="bar-fill" style={{ width: `${Math.min(100, (item.count / stats.iocs.total) * 100)}%` }} />
                       </div>
                       <span className="bar-count">{item.count}</span>
                     </div>
@@ -239,7 +237,6 @@ export default function App() {
               </select>
               <button className="btn-primary" onClick={loadAll} disabled={loading}>Apply</button>
             </div>
-
             <div className="panel">
               <table className="table">
                 <thead>
@@ -252,11 +249,7 @@ export default function App() {
                       <td><TypeTag type={ioc.type} /></td>
                       <td>{ioc.source}</td>
                       <td><ScoreBadge score={ioc.threat_score} /></td>
-                      <td>
-                        {ioc.tags?.map(tag => (
-                          <span key={tag} className="tag">{tag}</span>
-                        ))}
-                      </td>
+                      <td>{ioc.tags?.map(tag => <span key={tag} className="tag">{tag}</span>)}</td>
                       <td className="muted">{new Date(ioc.last_seen).toLocaleString()}</td>
                     </tr>
                   ))}
@@ -293,6 +286,7 @@ export default function App() {
         {/* ── INGEST ── */}
         {view === 'ingest' && (
           <div className="view-content">
+            <div className="ingest-section-title">Feed Ingestion</div>
             <div className="ingest-grid">
               <div className="panel ingest-card">
                 <div className="ingest-icon">⬡</div>
@@ -330,6 +324,49 @@ export default function App() {
                     {loading ? 'Scraping...' : 'Scrape & Ingest'}
                   </button>
                 </form>
+              </div>
+            </div>
+
+            <div className="ingest-section-title" style={{ marginTop: '28px' }}>Scrapers</div>
+            <div className="ingest-grid">
+              <div className="panel ingest-card">
+                <div className="ingest-icon">◉</div>
+                <h3>Threat Feeds</h3>
+                <p>Ingest from CERT, CISA advisories and AlienVault OTX RSS feeds.</p>
+                <button className="btn-primary" disabled={loading}
+                  onClick={() => handleIngest(() => runScraper('threat-feed'), 'Threat Feed')}>
+                  {loading ? 'Running...' : 'Run Threat Feed'}
+                </button>
+              </div>
+
+              <div className="panel ingest-card">
+                <div className="ingest-icon">◍</div>
+                <h3>Darkweb Scanner</h3>
+                <p>Scan darkweb sources for leaked IPs and threat indicators.</p>
+                <button className="btn-primary" disabled={loading}
+                  onClick={() => handleIngest(() => runScraper('darkweb'), 'Darkweb')}>
+                  {loading ? 'Running...' : 'Run Darkweb Scan'}
+                </button>
+              </div>
+
+              <div className="panel ingest-card">
+                <div className="ingest-icon">◌</div>
+                <h3>Pastebin</h3>
+                <p>Scrape recent Pastebin pastes for IOCs and threat data.</p>
+                <button className="btn-primary" disabled={loading}
+                  onClick={() => handleIngest(() => runScraper('pastebin'), 'Pastebin')}>
+                  {loading ? 'Running...' : 'Run Pastebin'}
+                </button>
+              </div>
+
+              <div className="panel ingest-card accent-run-all">
+                <div className="ingest-icon">⊕</div>
+                <h3>Run All Scrapers</h3>
+                <p>Trigger all available scrapers at once and ingest results into the DB.</p>
+                <button className="btn-danger" disabled={loading}
+                  onClick={() => handleIngest(() => runAllScrapers(), 'All Scrapers')}>
+                  {loading ? 'Running...' : '⚡ Run All'}
+                </button>
               </div>
             </div>
           </div>

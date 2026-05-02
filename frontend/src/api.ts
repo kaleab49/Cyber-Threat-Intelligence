@@ -122,3 +122,11 @@ export async function ingestScrape(url: string, limit = 500): Promise<IngestResu
     body: JSON.stringify({ url, source: 'web-scrape', limit }),
   })
 }
+
+export async function runAllScrapers(): Promise<IngestResult> {
+  return request<IngestResult>('/scrapers/run-all/', { method: 'POST' })
+}
+
+export async function runScraper(name: string): Promise<IngestResult> {
+  return request<IngestResult>(`/scrapers/${name}/`, { method: 'POST' })
+}

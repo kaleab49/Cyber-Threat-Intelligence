@@ -10,6 +10,12 @@ from threatintel.api.feed_ingest_api import (
     ingest_urlhaus_recent_api,
     scrape_ioc_page_api,
 )
+from threatintel.api.scraper_api import (
+    scraper_status, run_all_feeds_api,
+    run_feed_threat_api, run_feed_pastebin_api,
+    run_feed_darkweb_api, run_feed_malwarebazaar_api,
+    run_feed_twitter_api,
+)
 
 router = DefaultRouter()
 router.register(r'iocs', IOCViewSet)
@@ -29,4 +35,11 @@ urlpatterns = [
     path('feeds/ingest/scrape/', scrape_ioc_page_api, name='ingest-scrape-ioc-page'),
     path('feeds/enrich/circl/cves/', enrich_cves_circl_api, name='enrich-cves-circl'),
     path('graph/', graph_data, name='graph-data'),
+    path('scrapers/', scraper_status, name='scraper-status'),
+    path('scrapers/run-all/', run_all_feeds_api, name='scraper-run-all'),
+    path('scrapers/threat-feed/', run_feed_threat_api, name='scraper-threat'),
+    path('scrapers/pastebin/', run_feed_pastebin_api, name='scraper-pastebin'),
+    path('scrapers/darkweb/', run_feed_darkweb_api, name='scraper-darkweb'),
+    path('scrapers/malwarebazaar/', run_feed_malwarebazaar_api, name='scraper-malwarebazaar'),
+    path('scrapers/twitter/', run_feed_twitter_api, name='scraper-twitter'),
 ]

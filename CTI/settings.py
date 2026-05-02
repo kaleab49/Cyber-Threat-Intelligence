@@ -29,6 +29,14 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'run-all-feeds-every-hour': {
+        'task': 'threatintel.tasks.run_all_feeds',
+        'schedule': crontab(minute=0),  # every hour
+    },
+}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
