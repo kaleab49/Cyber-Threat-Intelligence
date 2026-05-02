@@ -1,24 +1,26 @@
-import requests
-from threatintel.services.ingestion_service import ingest_event
-
+import feedparser
 
 def fetch_threat_feed():
-    url = "https://pastebin.com/raw/your-test-link"
+    feeds = [
+        "https://www.cert.ssi.gouv.fr/feed/",
+        "https://www.cisa.gov/cybersecurity-advisories/all.xml",
+        "https://otx.alienvault.com/api/v1/indicators/export"
+    ]
 
-    try:
-        response = requests.get(url, timeout=10)
+    results = []
 
-        if response.status_code == 200:
-            data = response.text
+    for url in feeds:
+        try:
+            data = feedparser.parse(url)
 
-            ingest_event("threat_feed", data)
+            for entry in data.entries[:20]:
+                results.append({
+                    "type": "url",
+                    "value": entry.get("title", ""),
+                    "source": "threat_feed",
+                })
 
-            print("✔ Data ingested successfully")
-            return "success"
+        except Exception as e:
+            print("feed error:", e)
 
-        print(f"Failed: {response.status_code}")
-        return "failed"
-
-    except Exception as e:
-        print(f"Error: {e}")
-        return "error"
+    return results

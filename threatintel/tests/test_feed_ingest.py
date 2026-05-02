@@ -4,13 +4,13 @@ from datetime import datetime, timezone
 from django.test import TestCase
 
 from threatintel.models import IOC
-from threatintel.services.feed_ingest import (
+from threatintel.services.ingestion.feed_ingest import (
     _extract_iocs_from_text,
     ingest_cisa_kev,
     ingest_twitter_user,
     ingest_urlhaus_recent,
 )
-from threatintel.services.scoring import get_source_score
+from threatintel.services.scoring.scoring_service import get_source_score
 
 
 class FeedIngestTests(TestCase):

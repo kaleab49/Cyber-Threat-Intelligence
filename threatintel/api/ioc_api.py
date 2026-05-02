@@ -5,13 +5,27 @@ from rest_framework import status
 from threatintel.ioc.extractor import extract_iocs
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def extract_iocs_from_text(request):
-    text = request.data.get('text', '')
+    """
+    POST /api/ioc/extract/
+    Body: { "text": "raw text containing IOCs" }
+    """
+    text = request.data.get("text", "").strip()
+
     if not text:
         return Response(
-            {"detail": "Request body must include non-empty 'text'."},
-            status=status.HTTP_400_BAD_REQUEST,
+            {"error": "Field 'text' is required."},
+            status=status.HTTP_400_BAD_REQUEST
         )
 
-    return Response({"results": extract_iocs(text)}, status=status.HTTP_200_OK)
+    try:
+        extracted = extract_iocs(text)
+    except Exception as e:
+        return Response(
+            {"error": f"Extraction failed: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+    results = [{"type": ioc_type, "value": value} for ioc_type, value in extracted]
+    return Response({"count": len(results), "results": results})

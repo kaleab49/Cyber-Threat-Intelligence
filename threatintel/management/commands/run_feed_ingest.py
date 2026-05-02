@@ -1,6 +1,10 @@
 from django.core.management.base import BaseCommand
 
+<<<<<<< HEAD
 from threatintel.services.feed_ingest import (
+=======
+from threatintel.services.ingestion.feed_ingest import (
+>>>>>>> nathan
     ingest_cisa_kev,
     ingest_twitter_user,
     ingest_urlhaus_recent,

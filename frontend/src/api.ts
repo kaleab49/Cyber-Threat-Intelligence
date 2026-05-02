@@ -25,6 +25,36 @@ export type EventItem = {
   created_at: string
 }
 
+export type DashboardStats = {
+  generated_at: string
+  iocs: {
+    total: number
+    last_24h: number
+    last_7d: number
+    high_risk: number
+    avg_threat_score: number
+    max_threat_score: number
+    by_type: { type: string; count: number }[]
+    by_source: { source: string; count: number }[]
+    daily_trend: { day: string; count: number }[]
+    top_threats: IOC[]
+  }
+  events: {
+    total: number
+    last_24h: number
+    last_7d: number
+    by_source: { source: string; count: number }[]
+  }
+  threat_actors: number
+  malware: number
+  campaigns: number
+}
+
+export type ExtractResult = {
+  count: number
+  results: { type: string; value: string }[]
+}
+
 type IngestResult = Record<string, unknown>
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
@@ -37,28 +67,39 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     },
     ...init,
   })
-
   if (!response.ok) {
     const errorText = await response.text()
     throw new Error(errorText || `Request failed (${response.status})`)
   }
-
   return response.json() as Promise<T>
 }
 
 export async function fetchIocs(params?: {
   search?: string
   source?: string
+  type?: string
 }): Promise<PaginatedResponse<IOC>> {
-  const searchParams = new URLSearchParams()
-  if (params?.search) searchParams.set('search', params.search)
-  if (params?.source) searchParams.set('source', params.source)
-  const query = searchParams.toString()
-  return request<PaginatedResponse<IOC>>(`/iocs/${query ? `?${query}` : ''}`)
+  const sp = new URLSearchParams()
+  if (params?.search) sp.set('search', params.search)
+  if (params?.source) sp.set('source', params.source)
+  if (params?.type)   sp.set('type', params.type)
+  const q = sp.toString()
+  return request<PaginatedResponse<IOC>>(`/iocs/${q ? `?${q}` : ''}`)
 }
 
 export async function fetchEvents(): Promise<PaginatedResponse<EventItem>> {
   return request<PaginatedResponse<EventItem>>('/events/')
+}
+
+export async function fetchDashboardStats(): Promise<DashboardStats> {
+  return request<DashboardStats>('/analytics/dashboard/')
+}
+
+export async function extractIocs(text: string): Promise<ExtractResult> {
+  return request<ExtractResult>('/ioc/extract/', {
+    method: 'POST',
+    body: JSON.stringify({ text }),
+  })
 }
 
 export async function ingestUrlhaus(limit = 100): Promise<IngestResult> {

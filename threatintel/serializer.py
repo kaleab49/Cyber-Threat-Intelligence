@@ -6,12 +6,10 @@ class IOCSerializer(serializers.ModelSerializer):
         model = IOC
         fields = '__all__'
 
-
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = '__all__'
-
 
 class ThreatFeedSerializer(serializers.ModelSerializer):
     class Meta:
