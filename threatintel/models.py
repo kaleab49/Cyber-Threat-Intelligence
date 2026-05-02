@@ -34,10 +34,7 @@ class IOCManager(models.Manager):
         return obj
 
 
-<<<<<<< HEAD
 
-=======
->>>>>>> nathan
 class IOC(models.Model):
 
     IOC_TYPES = [
