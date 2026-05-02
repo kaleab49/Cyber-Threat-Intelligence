@@ -180,7 +180,7 @@ class Relationship(models.Model):
         ('related', 'RELATED_TO'),
         ('drops', 'DROPS'),
         ('communicates', 'COMMUNICATES_WITH'),
-    ]
+    ]w
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     source_ioc = models.ForeignKey(IOC, on_delete=models.CASCADE, related_name='source_rel')
