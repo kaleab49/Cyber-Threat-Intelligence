@@ -102,65 +102,59 @@ def _extract_iocs_from_text(text):
 
 
 def ingest_urlhaus_recent(limit=100):
-    response = requests.post(URLHAUS_RECENT_URL, timeout=20)
-    response.raise_for_status()
-    payload = response.json()
-    urls = payload.get("urls", [])[: max(1, min(int(limit), 1000))]
+    try:
+        response = requests.get(URLHAUS_RECENT_URL, timeout=20)
+        
+        # DO NOT crash pipeline on external API failure
+        if response.status_code != 200:
+            return {
+                "status": "failed",
+                "status_code": response.status_code,
+                "error": response.text[:200]
+            }
 
-    created_events = 0
-    created_iocs = 0
+        payload = response.json()
+        urls = payload.get("urls", [])[: max(1, min(int(limit), 1000))]
 
-    base_score = get_source_score("urlhaus")
+        created_events = 0
+        created_iocs = 0
 
-    for item in urls:
-        url_value = (item.get("url") or "").strip()
-        if not url_value:
-            continue
+        base_score = get_source_score("urlhaus")
 
-        timestamp = _parse_timestamp(item.get("date_added"))
-        Event.objects.create(
-            source="urlhaus",
-            raw_data=url_value,
-            parsed_data=item,
-            timestamp=timestamp,
-        )
-        created_events += 1
+        for item in urls:
+            url_value = (item.get("url") or "").strip()
+            if not url_value:
+                continue
 
-        ioc = _upsert_ioc(
-            value=url_value,
-            ioc_type="url",
-            source="urlhaus",
-            threat_score=base_score,
-            tags=["malicious", "urlhaus"],
-        )
-        if ioc:
+            Event.objects.create(
+                source="urlhaus",
+                raw_data=url_value,
+                parsed_data=item,
+                timestamp=_parse_timestamp(item.get("date_added")),
+            )
+
+            _upsert_ioc(
+                value=url_value,
+                ioc_type="url",
+                source="urlhaus",
+                threat_score=base_score,
+                tags=["malicious", "urlhaus"],
+            )
+
+            created_events += 1
             created_iocs += 1
 
-        host = urlparse(url_value).hostname
-        if host:
-            if _is_ip_address(host):
-                _upsert_ioc(
-                    value=host,
-                    ioc_type="ip",
-                    source="urlhaus",
-                    threat_score=base_score,
-                    tags=["urlhost", "urlhaus"],
-                )
-            else:
-                _upsert_ioc(
-                    value=host,
-                    ioc_type="domain",
-                    source="urlhaus",
-                    threat_score=base_score,
-                    tags=["urlhost", "urlhaus"],
-                )
+        return {
+            "source": "urlhaus",
+            "events_created": created_events,
+            "ioc_processed": created_iocs,
+        }
 
-    return {
-        "source": "urlhaus",
-        "requested": min(int(limit), 1000),
-        "events_created": created_events,
-        "ioc_processed": created_iocs,
-    }
+    except requests.RequestException as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
 
 
 def ingest_cisa_kev(limit=100):
