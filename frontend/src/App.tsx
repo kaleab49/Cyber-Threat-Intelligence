@@ -249,7 +249,7 @@ export default function App() {
                       <td><TypeTag type={ioc.type} /></td>
                       <td>{ioc.source}</td>
                       <td><ScoreBadge score={ioc.threat_score} /></td>
-                      <td>{ioc.tags?.map(tag => <span key={tag} className="tag">{tag}</span>)}</td>
+                      <td>{Array.isArray(ioc.tags) && ioc.tags.map((tag: string) => <span key={tag} className="tag">{tag}</span>)}</td>
                       <td className="muted">{new Date(ioc.last_seen).toLocaleString()}</td>
                     </tr>
                   ))}
