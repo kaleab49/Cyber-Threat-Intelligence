@@ -100,12 +100,11 @@ def _extract_iocs_from_text(text):
             extracted.append((ioc_type, match.group(0)))
     return extracted
 
-
 def ingest_urlhaus_recent(limit=100):
     try:
+        URLHAUS_RECENT_URL = "https://urlhaus.abuse.ch/downloads/json_recent/"
         response = requests.get(URLHAUS_RECENT_URL, timeout=20)
-        
-        # DO NOT crash pipeline on external API failure
+
         if response.status_code != 200:
             return {
                 "status": "failed",
@@ -114,7 +113,9 @@ def ingest_urlhaus_recent(limit=100):
             }
 
         payload = response.json()
-        urls = payload.get("urls", [])[: max(1, min(int(limit), 1000))]
+
+        urls = payload.get("data", []) or payload.get("urls", [])
+        urls = urls[: max(1, min(int(limit), 1000))]
 
         created_events = 0
         created_iocs = 0
@@ -155,8 +156,6 @@ def ingest_urlhaus_recent(limit=100):
             "status": "error",
             "error": str(e)
         }
-
-
 def ingest_cisa_kev(limit=100):
     response = requests.get(CISA_KEV_URL, timeout=20)
     response.raise_for_status()
