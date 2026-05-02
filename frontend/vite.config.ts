@@ -1,24 +1,14 @@
-[vite] connected. client:931:12
-XHRGET
-http://localhost:5173/api/iocs/
-[HTTP/1.1 502 Bad Gateway 12ms]
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-XHRGET
-http://localhost:5173/api/events/
-[HTTP/1.1 502 Bad Gateway 74ms]
-
-XHRGET
-http://localhost:5173/api/analytics/dashboard/
-[HTTP/1.1 502 Bad Gateway 63ms]
-
-XHRGET
-http://localhost:5173/api/iocs/
-[HTTP/1.1 502 Bad Gateway 72ms]
-
-XHRGET
-http://localhost:5173/api/events/
-[HTTP/1.1 502 Bad Gateway 55ms]
-
-XHRGET
-http://localhost:5173/api/analytics/dashboard/
-[HTTP/1.1 502 Bad Gateway 64ms]
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+})
