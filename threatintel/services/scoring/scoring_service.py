@@ -1,11 +1,15 @@
 # services/scoring/scoring_service.py
 def get_source_score(source):
-    if source == "CISA":
+    key = str(source or "").strip().lower()
+    if key in ("cisa", "cisa-kev"):
         return 40
-    elif source == "URLhaus":
+    if key == "urlhaus":
         return 30
-    else:
-        return 10
+    if key == "twitter":
+        return 25
+    return 10
+
+
 def score_ioc(ioc):
     score = 0
 
@@ -16,11 +20,13 @@ def score_ioc(ioc):
         score += 20
 
     # Source reliability
-    if hasattr(ioc, "source"):
-        if ioc.source == "CISA":
-            score += 40
-        elif ioc.source == "URLhaus":
-            score += 30
+    src = str(getattr(ioc, "source", "") or "").strip().lower()
+    if src in ("cisa", "cisa-kev"):
+        score += 40
+    elif src == "urlhaus":
+        score += 30
+    elif src == "twitter":
+        score += 25
 
     # Type-based
     if ioc.type == "ip":
@@ -44,7 +50,14 @@ def get_severity(score):
 
 def score_iocs(iocs):
     for ioc in iocs:
-        ioc.score = score_ioc(ioc)
-        ioc.severity = get_severity(ioc.score)
-        ioc.save()
+        computed = score_ioc(ioc)
+        new_score = max(ioc.threat_score or 0, computed)
+        if new_score != ioc.threat_score:
+            ioc.threat_score = new_score
+            ioc.save(update_fields=["threat_score"])
     return iocs
+
+
+def calculate_scores(iocs):
+    """Backward-compatible alias used by older call sites."""
+    return score_iocs(iocs)

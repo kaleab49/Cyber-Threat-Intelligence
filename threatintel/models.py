@@ -15,21 +15,30 @@ class IOCManager(models.Manager):
     def upsert_ioc(self, value, ioc_type, source, threat_score=0, tags=None):
 
         value = IOC.normalize_for_type(ioc_type, value)
+        normalized_source = str(source).strip().lower()
+        tag_payload = tags if tags is not None else {}
 
         obj, created = self.get_or_create(
             value=value,
             type=ioc_type,
-            source=source,
             defaults={
+                "source": normalized_source,
                 "threat_score": threat_score,
-                "tags": tags or {},
-            }
+                "tags": tag_payload,
+            },
         )
 
         if not created:
-            obj.threat_score = max(obj.threat_score, threat_score)
-            obj.last_seen = timezone.now()
-            obj.save()
+            updated = False
+            if threat_score > obj.threat_score:
+                obj.threat_score = threat_score
+                updated = True
+            if normalized_source and obj.source != normalized_source:
+                obj.source = normalized_source
+                updated = True
+            if updated:
+                obj.last_seen = timezone.now()
+                obj.save(update_fields=["threat_score", "source", "last_seen"])
 
         return obj
 

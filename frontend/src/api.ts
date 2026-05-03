@@ -82,9 +82,9 @@ export async function fetchIocs(params?: {
   const sp = new URLSearchParams()
   if (params?.search) sp.set('search', params.search)
   if (params?.source) sp.set('source', params.source)
-  if (params?.type)   sp.set('type', params.type)
+  if (params?.type) sp.set('type', params.type)
   const q = sp.toString()
-  return request<PaginatedResponse<IOC>>(`/iocs/${q ? `?${q}` : ''}`)
+  return request<PaginatedResponse<IOC>>(q ? `/iocs/?${q}` : '/iocs/')
 }
 
 export async function fetchEvents(): Promise<PaginatedResponse<EventItem>> {

@@ -1,6 +1,6 @@
 """Twitter/X scraper helpers for IOC ingestion."""
 
-from threatintel.services.feed_ingest import ingest_twitter_user
+from threatintel.services.ingestion.feed_ingest import ingest_twitter_user
 
 
 def scrape_twitter_user(username, limit=50):

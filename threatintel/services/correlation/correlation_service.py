@@ -1,18 +1,5 @@
-def correlate_event(event, iocs):
+"""Correlation helpers; canonical graph linking lives in analyzers.correlation_engine."""
 
-    relationships = []
+from threatintel.analyzers.correlation_engine import correlate_event
 
-    for ioc in iocs:
-        existing = IOC.objects.filter(value=ioc.value).exclude(id=ioc.id)
-        existing = IOC.objects.filter(value=ioc.value).first()
-
-        for match in existing:
-            rel = Relationship.objects.create(
-                source_ioc=ioc,
-                target_ioc=match,
-                relation_type="duplicate",
-                confidence=0.9
-            )
-            relationships.append(rel)
-
-    return relationships
+__all__ = ["correlate_event"]
