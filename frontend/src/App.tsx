@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
+// @ts-ignore
 import './App.css'
 import {
   fetchEvents, fetchIocs, fetchDashboardStats,

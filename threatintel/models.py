@@ -76,9 +76,6 @@ class IOC(models.Model):
     def __str__(self):
         return f"{self.value} ({self.type})"
 
-    # =========================
-    # NORMALIZATION ENGINE
-    # =========================
     @staticmethod
     def normalize_for_type(ioc_type, value):
         normalized = str(value).strip()

@@ -1,33 +1,32 @@
 import requests
-from bs4 import BeautifulSoup
+
+THREATFOX_API_KEY = "ec2d97d41a4305fa482256d29ca1f69cdbb0e33ce453d0da"
 
 def fetch_pastebin():
-    url = "https://pastebin.com/archive"
-
+    url = "https://threatfox-api.abuse.ch/api/v1/"
     try:
-        res = requests.get(url, timeout=10)
-        soup = BeautifulSoup(res.text, "html.parser")
-
+        res = requests.post(url,
+            json={"query": "get_iocs", "days": 1},
+            headers={"API-KEY": THREATFOX_API_KEY},
+            timeout=15
+        )
+        data = res.json()
         results = []
-
-        for link in soup.select(".maintable a")[:10]:
-            try:
-                paste_url = "https://pastebin.com" + link.get("href")
-                raw_url = paste_url.replace("/","/raw/")
-
-                raw = requests.get(raw_url, timeout=10).text
-
+        for item in data.get("data", [])[:50]:
+            ioc_value = item.get("ioc_value", "").strip()
+            ioc_type  = item.get("ioc_type", "").strip()
+            type_map  = {
+                "ip:port": "ip", "domain": "domain",
+                "url": "url", "md5_hash": "md5", "sha256_hash": "sha256",
+            }
+            mapped_type = type_map.get(ioc_type, "url")
+            if ioc_value:
                 results.append({
-                    "type": "text",
-                    "value": raw[:200],
-                    "source": "pastebin"
+                    "type":   mapped_type,
+                    "value":  ioc_value.split(":")[0] if ioc_type == "ip:port" else ioc_value,
+                    "source": "threatfox",
                 })
-
-            except:
-                continue
-
         return results
-
     except Exception as e:
-        print("pastebin error:", e)
+        print("threatfox error:", e)
         return []
