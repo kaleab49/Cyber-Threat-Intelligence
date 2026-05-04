@@ -15,11 +15,6 @@ try:
 except ImportError:  # pragma: no cover - optional dependency
     sntwitter = None
 
-try:
-    import snscrape.modules.twitter as sntwitter
-except ImportError:  # pragma: no cover - optional dependency
-    sntwitter = None
-
 
 URLHAUS_RECENT_URL = "https://urlhaus-api.abuse.ch/v1/urls/recent/"
 CIRCL_CVE_URL = "https://cve.circl.lu/api/cve/"
@@ -59,25 +54,33 @@ def _is_ip_address(value):
 def _upsert_ioc(value, ioc_type, source, threat_score=0, tags=None):
     normalized_value = IOC.normalize_for_type(ioc_type, value)
     normalized_source = str(source).strip().lower()
+    tag_list = list(tags) if tags else []
+
     ioc, created = IOC.objects.get_or_create(
         value=normalized_value,
         type=ioc_type,
-        source=normalized_source,
-        defaults={"threat_score": threat_score, "tags": tags or []},
+        defaults={
+            "source": normalized_source,
+            "threat_score": threat_score,
+            "tags": tag_list,
+        },
     )
     if not created:
         updated = False
         if threat_score > ioc.threat_score:
             ioc.threat_score = threat_score
             updated = True
-        if tags:
+        if normalized_source and ioc.source != normalized_source:
+            ioc.source = normalized_source
+            updated = True
+        if tag_list:
             existing = ioc.tags if isinstance(ioc.tags, list) else []
-            merged = sorted(set(existing + tags))
+            merged = sorted(set(existing + tag_list))
             if merged != existing:
                 ioc.tags = merged
                 updated = True
         if updated:
-            ioc.save(update_fields=["threat_score", "tags", "last_seen"])
+            ioc.save(update_fields=["threat_score", "tags", "last_seen", "source"])
     return ioc
 
 

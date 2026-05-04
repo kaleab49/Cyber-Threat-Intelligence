@@ -14,7 +14,7 @@ from threatintel.services.scoring.scoring_service import get_source_score
 
 
 class FeedIngestTests(TestCase):
-    @patch("threatintel.services.feed_ingest.sntwitter")
+    @patch("threatintel.services.ingestion.feed_ingest.sntwitter")
     def test_ingest_twitter_user_extracts_iocs(self, mocked_sntwitter):
         class DummyTweet:
             def __init__(self, tweet_id, raw_content, date):
@@ -50,7 +50,7 @@ class FeedIngestTests(TestCase):
         self.assertIn("CVE-2024-12345", extracted_values)
         self.assertIn("1.2.3.4", extracted_values)
 
-    @patch("threatintel.services.feed_ingest.requests.get")
+    @patch("threatintel.services.ingestion.feed_ingest.requests.get")
     def test_ingest_cisa_kev_creates_cve_iocs(self, mocked_get):
         mocked_response = Mock()
         mocked_response.json.return_value = {
@@ -59,7 +59,7 @@ class FeedIngestTests(TestCase):
                 {"cveID": "CVE-2023-2222"},
             ]
         }
-        mocked_response.raise_for_status.return_value = None
+        mocked_response.raise_for_status = Mock(return_value=None)
         mocked_get.return_value = mocked_response
 
         result = ingest_cisa_kev(limit=10)
@@ -72,14 +72,15 @@ class FeedIngestTests(TestCase):
             ).exists()
         )
 
-    @patch("threatintel.services.feed_ingest.requests.post")
-    def test_ingest_urlhaus_uses_source_score(self, mocked_post):
+    @patch("threatintel.services.ingestion.feed_ingest.requests.get")
+    def test_ingest_urlhaus_uses_source_score(self, mocked_get):
         mocked_response = Mock()
+        mocked_response.status_code = 200
         mocked_response.json.return_value = {
             "urls": [{"url": "http://bad.example/path", "date_added": "2026-01-01 00:00:00 UTC"}]
         }
         mocked_response.raise_for_status.return_value = None
-        mocked_post.return_value = mocked_response
+        mocked_get.return_value = mocked_response
 
         result = ingest_urlhaus_recent(limit=1)
 
