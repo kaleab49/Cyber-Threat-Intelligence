@@ -11,6 +11,7 @@ click-plugins==1.1.1.2
 click-repl==0.3.0
 Django==5.2.13
 djangorestframework==3.17.1
+djangorestframework-simplejwt==5.5.1
 dnspython==2.8.0
 drf-yasg==1.21.15
 feedparser==6.0.12
