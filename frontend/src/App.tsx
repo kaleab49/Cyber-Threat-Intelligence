@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import './App.css'
+import Landing from './Landing'
 import {
   fetchEvents, fetchIocs, fetchDashboardStats,
   ingestKev, ingestScrape, ingestUrlhaus,
@@ -8,7 +9,6 @@ import {
   setTokens, clearTokens, getAccessToken,
 } from './api'
 import type { EventItem, IOC, DashboardStats } from './api'
-import Landing from './Landing'
 
 type View = 'dashboard' | 'iocs' | 'events' | 'ingest' | 'extract'
 
