@@ -59,21 +59,49 @@ type IngestResult = Record<string, unknown>
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
 
+// ── Token management ──────────────────────────────────────────────────────
+export function getAccessToken(): string | null {
+  return sessionStorage.getItem('access_token')
+}
+
+export function setTokens(access: string, refresh: string) {
+  sessionStorage.setItem('access_token', access)
+  sessionStorage.setItem('refresh_token', refresh)
+}
+
+export function clearTokens() {
+  sessionStorage.removeItem('access_token')
+  sessionStorage.removeItem('refresh_token')
+  sessionStorage.removeItem('username')
+}
+
+// ── Base request with auth ────────────────────────────────────────────────
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getAccessToken()
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...(init?.headers || {}),
     },
     ...init,
   })
+
+  if (response.status === 401) {
+    clearTokens()
+    window.location.reload()
+    throw new Error('Session expired. Please login again.')
+  }
+
   if (!response.ok) {
     const errorText = await response.text()
     throw new Error(errorText || `Request failed (${response.status})`)
   }
+
   return response.json() as Promise<T>
 }
 
+// ── IOC endpoints ─────────────────────────────────────────────────────────
 export async function fetchIocs(params?: {
   search?: string
   source?: string
@@ -82,9 +110,9 @@ export async function fetchIocs(params?: {
   const sp = new URLSearchParams()
   if (params?.search) sp.set('search', params.search)
   if (params?.source) sp.set('source', params.source)
-  if (params?.type) sp.set('type', params.type)
+  if (params?.type)   sp.set('type', params.type)
   const q = sp.toString()
-  return request<PaginatedResponse<IOC>>(q ? `/iocs/?${q}` : '/iocs/')
+  return request<PaginatedResponse<IOC>>(`/iocs/${q ? `?${q}` : ''}`)
 }
 
 export async function fetchEvents(): Promise<PaginatedResponse<EventItem>> {

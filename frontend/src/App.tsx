@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-// @ts-ignore
 import './App.css'
 import {
   fetchEvents, fetchIocs, fetchDashboardStats,
   ingestKev, ingestScrape, ingestUrlhaus,
   extractIocs, runAllScrapers, runScraper,
+  setTokens, clearTokens, getAccessToken,
 } from './api'
 import type { EventItem, IOC, DashboardStats } from './api'
+import Login from './login'
 
 type View = 'dashboard' | 'iocs' | 'events' | 'ingest' | 'extract'
 
@@ -31,26 +32,49 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string 
 }
 
 export default function App() {
-  const [view, setView] = useState<View>('dashboard')
-  const [iocs, setIocs] = useState<IOC[]>([])
-  const [events, setEvents] = useState<EventItem[]>([])
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [search, setSearch] = useState('')
-  const [source, setSource] = useState('')
-  const [typeFilter, setTypeFilter] = useState('')
-  const [scrapeUrl, setScrapeUrl] = useState('')
+  const [isAuth, setIsAuth]     = useState(!!getAccessToken())
+  const [username, setUsername] = useState(sessionStorage.getItem('username') || '')
+
+  function handleLogin(access: string, refresh: string, user: string) {
+    setTokens(access, refresh)
+    sessionStorage.setItem('username', user)
+    setUsername(user)
+    setIsAuth(true)
+  }
+
+  function handleLogout() {
+    clearTokens()
+    setIsAuth(false)
+    setUsername('')
+  }
+
+  if (!isAuth) return <Login onLogin={handleLogin} />
+
+  return <Dashboard username={username} onLogout={handleLogout} />
+}
+
+// ── Main Dashboard ────────────────────────────────────────────────────────
+
+function Dashboard({ username, onLogout }: { username: string; onLogout: () => void }) {
+  const [view, setView]               = useState<View>('dashboard')
+  const [iocs, setIocs]               = useState<IOC[]>([])
+  const [events, setEvents]           = useState<EventItem[]>([])
+  const [stats, setStats]             = useState<DashboardStats | null>(null)
+  const [search, setSearch]           = useState('')
+  const [source, setSource]           = useState('')
+  const [typeFilter, setTypeFilter]   = useState('')
+  const [scrapeUrl, setScrapeUrl]     = useState('')
   const [extractText, setExtractText] = useState('')
   const [extractResults, setExtractResults] = useState<{ type: string; value: string }[]>([])
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
+  const [loading, setLoading]         = useState(false)
+  const [message, setMessage]         = useState('')
+  const [error, setError]             = useState('')
 
   const sources = useMemo(() => Array.from(new Set(iocs.map(i => i.source))).sort(), [iocs])
   const types   = useMemo(() => Array.from(new Set(iocs.map(i => i.type))).sort(), [iocs])
 
   async function loadAll() {
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     try {
       const [iocResp, eventResp, statsResp] = await Promise.all([
         fetchIocs({ search, source, type: typeFilter }),
@@ -113,7 +137,6 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Sidebar */}
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-icon">⬡</div>
@@ -136,11 +159,11 @@ export default function App() {
         </nav>
         <div className="sidebar-footer">
           <div className="status-dot" />
-          <span>API Connected</span>
+          <span>{username}</span>
+          <button className="logout-btn" onClick={onLogout}>⎋</button>
         </div>
       </aside>
 
-      {/* Main */}
       <main className="main">
         <div className="topbar">
           <h1 className="page-title">{navItems.find(n => n.id === view)?.label}</h1>
@@ -157,10 +180,10 @@ export default function App() {
         {view === 'dashboard' && stats && (
           <div className="view-dashboard">
             <div className="stats-grid">
-              <StatCard label="Total IOCs"    value={stats.iocs.total}        sub={`+${stats.iocs.last_24h} today`}   accent="blue"   />
-              <StatCard label="High Risk"     value={stats.iocs.high_risk}    sub="Score ≥ 75"                        accent="red"    />
-              <StatCard label="Avg Score"     value={stats.iocs.avg_threat_score}                                     accent="yellow" />
-              <StatCard label="Events"        value={stats.events.total}      sub={`+${stats.events.last_24h} today`} accent="green"  />
+              <StatCard label="Total IOCs"    value={stats.iocs.total}             sub={`+${stats.iocs.last_24h} today`}   accent="blue"   />
+              <StatCard label="High Risk"     value={stats.iocs.high_risk}         sub="Score ≥ 75"                        accent="red"    />
+              <StatCard label="Avg Score"     value={stats.iocs.avg_threat_score}                                          accent="yellow" />
+              <StatCard label="Events"        value={stats.events.total}           sub={`+${stats.events.last_24h} today`} accent="green"  />
               <StatCard label="Threat Actors" value={stats.threat_actors} />
               <StatCard label="Malware"       value={stats.malware} />
             </div>
@@ -220,14 +243,9 @@ export default function App() {
         {view === 'iocs' && (
           <div className="view-content">
             <div className="filters-bar">
-              <input
-                className="filter-input"
-                type="text"
-                placeholder="Search value..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && loadAll()}
-              />
+              <input className="filter-input" type="text" placeholder="Search value..."
+                value={search} onChange={e => setSearch(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && loadAll()} />
               <select className="filter-select" value={source} onChange={e => setSource(e.target.value)}>
                 <option value="">All sources</option>
                 {sources.map(s => <option key={s} value={s}>{s}</option>)}
@@ -298,7 +316,6 @@ export default function App() {
                   {loading ? 'Running...' : 'Ingest URLhaus'}
                 </button>
               </div>
-
               <div className="panel ingest-card">
                 <div className="ingest-icon">◈</div>
                 <h3>CISA KEV</h3>
@@ -308,19 +325,14 @@ export default function App() {
                   {loading ? 'Running...' : 'Ingest CISA KEV'}
                 </button>
               </div>
-
               <div className="panel ingest-card">
                 <div className="ingest-icon">◎</div>
                 <h3>Scrape URL</h3>
                 <p>Extract IOCs from any threat intelligence page.</p>
                 <form onSubmit={submitScrape} className="ingest-form">
-                  <input
-                    className="filter-input"
-                    type="url"
-                    value={scrapeUrl}
+                  <input className="filter-input" type="url" value={scrapeUrl}
                     placeholder="https://example.com/threat-report"
-                    onChange={e => setScrapeUrl(e.target.value)}
-                  />
+                    onChange={e => setScrapeUrl(e.target.value)} />
                   <button className="btn-primary" type="submit" disabled={loading || !scrapeUrl.trim()}>
                     {loading ? 'Scraping...' : 'Scrape & Ingest'}
                   </button>
@@ -339,7 +351,6 @@ export default function App() {
                   {loading ? 'Running...' : 'Run Threat Feed'}
                 </button>
               </div>
-
               <div className="panel ingest-card">
                 <div className="ingest-icon">◍</div>
                 <h3>Darkweb Scanner</h3>
@@ -349,18 +360,16 @@ export default function App() {
                   {loading ? 'Running...' : 'Run Darkweb Scan'}
                 </button>
               </div>
-
               <div className="panel ingest-card">
                 <div className="ingest-icon">◌</div>
-                <h3>Pastebin</h3>
-                <p>Scrape recent Pastebin pastes for IOCs and threat data.</p>
+                <h3>ThreatFox</h3>
+                <p>Scrape recent IOCs from ThreatFox threat intelligence feed.</p>
                 <button className="btn-primary" disabled={loading}
-                  onClick={() => handleIngest(() => runScraper('pastebin'), 'Pastebin')}>
-                  {loading ? 'Running...' : 'Run Pastebin'}
+                  onClick={() => handleIngest(() => runScraper('pastebin'), 'ThreatFox')}>
+                  {loading ? 'Running...' : 'Run ThreatFox'}
                 </button>
               </div>
-
-              <div className="panel ingest-card accent-run-all">
+              <div className="panel ingest-card">
                 <div className="ingest-icon">⊕</div>
                 <h3>Run All Scrapers</h3>
                 <p>Trigger all available scrapers at once and ingest results into the DB.</p>
@@ -382,26 +391,20 @@ export default function App() {
                 Paste raw text to extract IPs, domains, URLs, hashes, and CVEs.
               </p>
               <form onSubmit={handleExtract} className="extract-form">
-                <textarea
-                  className="extract-textarea"
-                  value={extractText}
+                <textarea className="extract-textarea" value={extractText}
                   onChange={e => setExtractText(e.target.value)}
                   placeholder="Paste threat report, log, or any raw text here..."
-                  rows={8}
-                />
+                  rows={8} />
                 <button className="btn-primary" type="submit" disabled={loading || !extractText.trim()}>
                   {loading ? 'Extracting...' : 'Extract IOCs'}
                 </button>
               </form>
             </div>
-
             {extractResults.length > 0 && (
               <div className="panel">
                 <h3 className="panel-title">Extracted — {extractResults.length} IOCs</h3>
                 <table className="table">
-                  <thead>
-                    <tr><th>#</th><th>Type</th><th>Value</th></tr>
-                  </thead>
+                  <thead><tr><th>#</th><th>Type</th><th>Value</th></tr></thead>
                   <tbody>
                     {extractResults.map((r, i) => (
                       <tr key={i}>

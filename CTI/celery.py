@@ -1,23 +1,20 @@
 import os
 from celery import Celery
+from celery.schedules import crontab
 
-# Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'CTI.settings')
 
-# Create Celery app
 app = Celery('CTI')
-
-# Load Django settings
 app.config_from_object('django.conf:settings', namespace='CELERY')
-
-# Auto-discover tasks
 app.autodiscover_tasks()
 
-
-# ⏱️ BEAT SCHEDULE (PUT IT HERE)
 app.conf.beat_schedule = {
-    "run-all-feeds-every-5-min": {
-        "task": "threatintel.tasks.run_all_feeds",
-        "schedule": 300.0,  # 5 minutes
+    'run-all-feeds-every-hour': {
+        'task': 'threatintel.tasks.run_all_feeds',
+        'schedule': crontab(minute=0),  # every hour
+    },
+    'run-cisa-kev-daily': {
+        'task': 'threatintel.tasks.run_feed_threat',
+        'schedule': crontab(hour=6, minute=0),  # every day at 6am
     },
 }

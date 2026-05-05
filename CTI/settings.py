@@ -29,14 +29,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-from celery.schedules import crontab
 
-CELERY_BEAT_SCHEDULE = {
-    'run-all-feeds-every-hour': {
-        'task': 'threatintel.tasks.run_all_feeds',
-        'schedule': crontab(minute=0),  # every hour
-    },
-}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -92,7 +85,35 @@ DATABASES = {
 }
 
 
+# Add to INSTALLED_APPS
+'rest_framework_simplejwt',
 
+# Add this anywhere in settings.py
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+}
+
+# Update REST_FRAMEWORK settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ),
+}
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
