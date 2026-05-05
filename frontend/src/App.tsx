@@ -8,7 +8,7 @@ import {
   setTokens, clearTokens, getAccessToken,
 } from './api'
 import type { EventItem, IOC, DashboardStats } from './api'
-import Login from './login'
+import Landing from './Landing'
 
 type View = 'dashboard' | 'iocs' | 'events' | 'ingest' | 'extract'
 
@@ -48,7 +48,7 @@ export default function App() {
     setUsername('')
   }
 
-  if (!isAuth) return <Login onLogin={handleLogin} />
+  if (!isAuth) return <Landing onLogin={handleLogin} />
 
   return <Dashboard username={username} onLogout={handleLogout} />
 }

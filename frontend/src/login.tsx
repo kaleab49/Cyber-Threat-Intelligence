@@ -3,9 +3,10 @@ import type { FormEvent } from 'react'
 
 type Props = {
   onLogin: (access: string, refresh: string, username: string) => void
+  onClose?: () => void
 }
 
-export default function Login({ onLogin }: Props) {
+export default function Login({ onLogin, onClose }: Props) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading]   = useState(false)
@@ -40,6 +41,11 @@ export default function Login({ onLogin }: Props) {
   return (
     <div className="login-bg">
       <div className="login-card">
+        {onClose && (
+          <button className="login-close" type="button" onClick={onClose}>
+            ×
+          </button>
+        )}
         <div className="login-brand">
           <div className="login-icon">⬡</div>
           <div className="login-title">CTI Platform</div>
