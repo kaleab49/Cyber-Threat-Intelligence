@@ -98,3 +98,6 @@ def run_all_feeds():
                 "error":  str(e),
             }
     return results
+@shared_task
+def run_feed_virustotal():
+    return _process_feed("virustotal", FEEDS["virustotal"])

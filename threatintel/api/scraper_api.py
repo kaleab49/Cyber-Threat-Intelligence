@@ -47,3 +47,10 @@ def scraper_status(request):
         ],
         "run_all": "/api/scrapers/run-all/",
     })
+
+from threatintel.tasks import run_feed_virustotal
+
+@api_view(["POST"])
+def run_feed_virustotal_api(request):
+    """POST /api/scrapers/virustotal/"""
+    return _trigger(run_feed_virustotal, request.data.get("async", False))

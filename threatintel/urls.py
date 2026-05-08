@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .view import *
 from threatintel.api.graph_api import graph_data
 from threatintel.api.analytics_api import dashboard_stats
+from threatintel.api.scraper_api import run_feed_virustotal_api
 from threatintel.api.ioc_api import extract_iocs_from_text
 from threatintel.api.auth_api import register, login, refresh_token, logout, me
 from threatintel.api.feed_ingest_api import (
@@ -48,7 +49,6 @@ urlpatterns = [
     path('auth/refresh/',  refresh_token,  name='auth-refresh'),
     path('auth/logout/',   logout,         name='auth-logout'),
     path('auth/me/',       me,             name='auth-me'),
+    path('scrapers/virustotal/', run_feed_virustotal_api, name='scraper-virustotal'),
 ]
 
-
-# Add to urlpatterns:
