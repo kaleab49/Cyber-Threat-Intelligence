@@ -302,85 +302,105 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
           </div>
         )}
 
-        {/* ── INGEST ── */}
-        {view === 'ingest' && (
-          <div className="view-content">
-            <div className="ingest-section-title">Feed Ingestion</div>
-            <div className="ingest-grid">
-              <div className="panel ingest-card">
-                <div className="ingest-icon">⬡</div>
-                <h3>URLhaus</h3>
-                <p>Ingest recent malicious URLs from abuse.ch URLhaus feed.</p>
-                <button className="btn-primary" disabled={loading}
-                  onClick={() => handleIngest(() => ingestUrlhaus(100), 'URLhaus')}>
-                  {loading ? 'Running...' : 'Ingest URLhaus'}
-                </button>
-              </div>
-              <div className="panel ingest-card">
-                <div className="ingest-icon">◈</div>
-                <h3>CISA KEV</h3>
-                <p>Ingest known exploited vulnerabilities from CISA KEV catalog.</p>
-                <button className="btn-primary" disabled={loading}
-                  onClick={() => handleIngest(() => ingestKev(100), 'CISA KEV')}>
-                  {loading ? 'Running...' : 'Ingest CISA KEV'}
-                </button>
-              </div>
-              <div className="panel ingest-card">
-                <div className="ingest-icon">◎</div>
-                <h3>Scrape URL</h3>
-                <p>Extract IOCs from any threat intelligence page.</p>
-                <form onSubmit={submitScrape} className="ingest-form">
-                  <input className="filter-input" type="url" value={scrapeUrl}
-                    placeholder="https://example.com/threat-report"
-                    onChange={e => setScrapeUrl(e.target.value)} />
-                  <button className="btn-primary" type="submit" disabled={loading || !scrapeUrl.trim()}>
-                    {loading ? 'Scraping...' : 'Scrape & Ingest'}
-                  </button>
-                </form>
-              </div>
-            </div>
+                      {/* ── INGEST ── */}
+          {view === 'ingest' && (
+            <div className="view-content">
 
-            <div className="ingest-section-title" style={{ marginTop: '28px' }}>Scrapers</div>
-            <div className="ingest-grid">
-              <div className="panel ingest-card">
-                <div className="ingest-icon">◉</div>
-                <h3>Threat Feeds</h3>
-                <p>Ingest from CERT, CISA advisories and AlienVault OTX RSS feeds.</p>
-                <button className="btn-primary" disabled={loading}
-                  onClick={() => handleIngest(() => runScraper('threat-feed'), 'Threat Feed')}>
-                  {loading ? 'Running...' : 'Run Threat Feed'}
-                </button>
+              <div className="ingest-section-title">Feed Ingestion</div>
+              <div className="ingest-grid">
+                <div className="panel ingest-card">
+                  <div className="ingest-icon">⬡</div>
+                  <h3>URLhaus</h3>
+                  <p>Ingest recent malicious URLs from abuse.ch URLhaus feed.</p>
+                  <button className="btn-primary" disabled={loading}
+                    onClick={() => handleIngest(() => ingestUrlhaus(100), 'URLhaus')}>
+                    {loading ? 'Running...' : 'Ingest URLhaus'}
+                  </button>
+                </div>
+                <div className="panel ingest-card">
+                  <div className="ingest-icon">◈</div>
+                  <h3>CISA KEV</h3>
+                  <p>Ingest known exploited vulnerabilities from CISA KEV catalog.</p>
+                  <button className="btn-primary" disabled={loading}
+                    onClick={() => handleIngest(() => ingestKev(100), 'CISA KEV')}>
+                    {loading ? 'Running...' : 'Ingest CISA KEV'}
+                  </button>
+                </div>
+                <div className="panel ingest-card">
+                  <div className="ingest-icon">◎</div>
+                  <h3>Scrape URL</h3>
+                  <p>Extract IOCs from any threat intelligence page.</p>
+                  <form onSubmit={submitScrape} className="ingest-form">
+                    <input className="filter-input" type="url" value={scrapeUrl}
+                      placeholder="https://example.com/threat-report"
+                      onChange={e => setScrapeUrl(e.target.value)} />
+                    <button className="btn-primary" type="submit" disabled={loading || !scrapeUrl.trim()}>
+                      {loading ? 'Scraping...' : 'Scrape & Ingest'}
+                    </button>
+                  </form>
+                </div>
               </div>
-              <div className="panel ingest-card">
-                <div className="ingest-icon">◍</div>
-                <h3>Darkweb Scanner</h3>
-                <p>Scan darkweb sources for leaked IPs and threat indicators.</p>
-                <button className="btn-primary" disabled={loading}
-                  onClick={() => handleIngest(() => runScraper('darkweb'), 'Darkweb')}>
-                  {loading ? 'Running...' : 'Run Darkweb Scan'}
-                </button>
+
+              <div className="ingest-section-title" style={{ marginTop: '28px' }}>Scrapers</div>
+              <div className="ingest-grid">
+                <div className="panel ingest-card">
+                  <div className="ingest-icon">◉</div>
+                  <h3>Threat Feeds</h3>
+                  <p>Ingest from CERT, CISA advisories and AlienVault OTX RSS feeds.</p>
+                  <button className="btn-primary" disabled={loading}
+                    onClick={() => handleIngest(() => runScraper('threat-feed'), 'Threat Feed')}>
+                    {loading ? 'Running...' : 'Run Threat Feed'}
+                  </button>
+                </div>
+                <div className="panel ingest-card">
+                  <div className="ingest-icon">◍</div>
+                  <h3>Darkweb Scanner</h3>
+                  <p>Scan darkweb sources for leaked IPs and threat indicators.</p>
+                  <button className="btn-primary" disabled={loading}
+                    onClick={() => handleIngest(() => runScraper('darkweb'), 'Darkweb')}>
+                    {loading ? 'Running...' : 'Run Darkweb Scan'}
+                  </button>
+                </div>
+                <div className="panel ingest-card">
+                  <div className="ingest-icon" style={{ color: '#00e89a' }}>◈</div>
+                  <h3>VirusTotal</h3>
+                  <p>Enrich existing IOCs with VirusTotal scan results and detection scores.</p>
+                  <button className="btn-primary" disabled={loading}
+                    onClick={() => handleIngest(() => runScraper('virustotal'), 'VirusTotal')}>
+                    {loading ? 'Running...' : 'Run VirusTotal'}
+                  </button>
+                </div>
+                <div className="panel ingest-card">
+                  <div className="ingest-icon">◌</div>
+                  <h3>ThreatFox</h3>
+                  <p>Scrape recent IOCs from ThreatFox threat intelligence feed.</p>
+                  <button className="btn-primary" disabled={loading}
+                    onClick={() => handleIngest(() => runScraper('pastebin'), 'ThreatFox')}>
+                    {loading ? 'Running...' : 'Run ThreatFox'}
+                  </button>
+                </div>
+                <div className="panel ingest-card">
+                  <div className="ingest-icon" style={{ color: '#ffc233' }}>◉</div>
+                  <h3>MalwareBazaar</h3>
+                  <p>Fetch recent malware samples and hashes from MalwareBazaar.</p>
+                  <button className="btn-primary" disabled={loading}
+                    onClick={() => handleIngest(() => runScraper('malwarebazaar'), 'MalwareBazaar')}>
+                    {loading ? 'Running...' : 'Run MalwareBazaar'}
+                  </button>
+                </div>
+                <div className="panel ingest-card">
+                  <div className="ingest-icon">⊕</div>
+                  <h3>Run All Scrapers</h3>
+                  <p>Trigger all available scrapers at once and ingest results into the DB.</p>
+                  <button className="btn-danger" disabled={loading}
+                    onClick={() => handleIngest(() => runAllScrapers(), 'All Scrapers')}>
+                    {loading ? 'Running...' : '⚡ Run All'}
+                  </button>
+                </div>
               </div>
-              <div className="panel ingest-card">
-                <div className="ingest-icon">◌</div>
-                <h3>ThreatFox</h3>
-                <p>Scrape recent IOCs from ThreatFox threat intelligence feed.</p>
-                <button className="btn-primary" disabled={loading}
-                  onClick={() => handleIngest(() => runScraper('pastebin'), 'ThreatFox')}>
-                  {loading ? 'Running...' : 'Run ThreatFox'}
-                </button>
-              </div>
-              <div className="panel ingest-card">
-                <div className="ingest-icon">⊕</div>
-                <h3>Run All Scrapers</h3>
-                <p>Trigger all available scrapers at once and ingest results into the DB.</p>
-                <button className="btn-danger" disabled={loading}
-                  onClick={() => handleIngest(() => runAllScrapers(), 'All Scrapers')}>
-                  {loading ? 'Running...' : '⚡ Run All'}
-                </button>
-              </div>
+
             </div>
-          </div>
-        )}
+          )}
 
         {/* ── EXTRACT ── */}
         {view === 'extract' && (

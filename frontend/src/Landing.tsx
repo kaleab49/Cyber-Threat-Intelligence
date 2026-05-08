@@ -155,7 +155,6 @@ export default function Landing({ onLogin }: Props) {
       </section>
 
       <section className="l-ticker" id="feeds">
-        <div className="l-ticker-label">Live feeds</div>
         <div className="l-ticker-track">
           {[...FEEDS, ...FEEDS].map((f, i) => (
             <div key={i} className="l-ticker-item" style={{ '--fc': f.color } as React.CSSProperties}>

@@ -535,14 +535,16 @@ body {
 
 /* ── INGEST ── */
 .ingest-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); font-weight: 700; margin-bottom: 12px; }
-.ingest-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 8px; }
-.ingest-card { display: flex; flex-direction: column; gap: 12px; }
+.ingest-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 16px; margin-bottom: 8px; }
+.ingest-card { display: flex; flex-direction: column; gap: 22px; }
 .ingest-icon { font-size: 32px; color: var(--accent); filter: drop-shadow(0 0 8px var(--accent)); }
 .ingest-card h3 { font-size: 16px; font-weight: 700; color: #fff; }
 .ingest-card p  { font-size: 13px; color: var(--text-muted); flex: 1; }
 .ingest-form { display: flex; flex-direction: column; gap: 8px; }
 .ingest-form .filter-input { width: 100%; }
-
+.ingest-grid {
+  align-items: start;
+}
 /* ── EXTRACT ── */
 .extract-form { display: flex; flex-direction: column; gap: 12px; }
 .extract-textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border2); color: var(--text); border-radius: var(--radius); padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; resize: vertical; outline: none; line-height: 1.6; transition: border-color 0.15s; }
