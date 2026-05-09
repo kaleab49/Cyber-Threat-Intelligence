@@ -55,14 +55,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'CTI.urls'
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',  # change from IsAuthenticatedOrReadOnly
-    ),
-}
 
 TEMPLATES = [
     {
@@ -88,15 +80,8 @@ WSGI_APPLICATION = 'CTI.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'k6hfjhkjk6zmY6eE',
-        'HOST': 'db.acsiamntqsygvuhuajia.supabase.co',
-        'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require',
-        }
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
