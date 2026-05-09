@@ -286,4 +286,4 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## 👤 Author
 
-Built by **Nathan** as a production-grade CTI platform for security teams.
+Built by **Nathan and kaleab** as a production-grade CTI platform for security teams.
