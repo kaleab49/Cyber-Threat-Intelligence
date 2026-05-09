@@ -1,6 +1,9 @@
 import requests
 
-THREATFOX_API_KEY = "ec2d97d41a4305fa482256d29ca1f69cdbb0e33ce453d0da"
+import os
+from dotenv import load_dotenv
+load_dotenv()
+THREATFOX_API_KEY = os.getenv("THREATFOX_API_KEY", "")
 
 def fetch_pastebin():
     url = "https://threatfox-api.abuse.ch/api/v1/"

@@ -2,7 +2,10 @@ import requests
 import time
 import ipaddress
 
-VT_API_KEY = "9ecb63e962e10feb57e4b01d59efd66fbb626beea5412d4dabb5809572bd603e"
+import os
+from dotenv import load_dotenv
+load_dotenv()
+VT_API_KEY = os.getenv("VIRUSTOTAL_API_KEY", "")
 VT_BASE    = "https://www.virustotal.com/api/v3"
 
 HEADERS = {
