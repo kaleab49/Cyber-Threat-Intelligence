@@ -141,7 +141,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
         <div className="brand">
           <div className="brand-icon">⬡</div>
           <div>
-            <div className="brand-name">CTI</div>
+            <div className="brand-name">INSA-CTI</div>
             <div className="brand-sub">Threat Intelligence</div>
           </div>
         </div>
@@ -309,7 +309,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
               <div className="ingest-section-title">Feed Ingestion</div>
               <div className="ingest-grid">
                 <div className="panel ingest-card">
-                  <div className="ingest-icon">⬡</div>
+                  <div className="ingest-icon"style={{ color: '#00d0ff' }}>⬡</div>
                   <h3>URLhaus</h3>
                   <p>Ingest recent malicious URLs from abuse.ch URLhaus feed.</p>
                   <button className="btn-primary" disabled={loading}
@@ -318,7 +318,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   </button>
                 </div>
                 <div className="panel ingest-card">
-                  <div className="ingest-icon">◈</div>
+                  <div className="ingest-icon"style={{ color: '#e600ff' }}>◈</div>
                   <h3>CISA KEV</h3>
                   <p>Ingest known exploited vulnerabilities from CISA KEV catalog.</p>
                   <button className="btn-primary" disabled={loading}
@@ -327,7 +327,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   </button>
                 </div>
                 <div className="panel ingest-card">
-                  <div className="ingest-icon">◎</div>
+                  <div className="ingest-icon"style={{ color: '#6e39ff' }}>◎</div>
                   <h3>Scrape URL</h3>
                   <p>Extract IOCs from any threat intelligence page.</p>
                   <form onSubmit={submitScrape} className="ingest-form">
@@ -344,7 +344,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
               <div className="ingest-section-title" style={{ marginTop: '28px' }}>Scrapers</div>
               <div className="ingest-grid">
                 <div className="panel ingest-card">
-                  <div className="ingest-icon">◉</div>
+                 <div className="ingest-icon" style={{ color: '#4dff00' }}>◉</div>
                   <h3>Threat Feeds</h3>
                   <p>Ingest from CERT, CISA advisories and AlienVault OTX RSS feeds.</p>
                   <button className="btn-primary" disabled={loading}
@@ -353,7 +353,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   </button>
                 </div>
                 <div className="panel ingest-card">
-                  <div className="ingest-icon">◍</div>
+                  <div className="ingest-icon" style={{ color: '#ffe600' }}>  ◍ </div>
                   <h3>Darkweb Scanner</h3>
                   <p>Scan darkweb sources for leaked IPs and threat indicators.</p>
                   <button className="btn-primary" disabled={loading}
@@ -362,7 +362,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   </button>
                 </div>
                 <div className="panel ingest-card">
-                  <div className="ingest-icon" style={{ color: '#00e89a' }}>◈</div>
+                  <div className="ingest-icon" style={{ color: '#ff6600' }}>◈</div>
                   <h3>VirusTotal</h3>
                   <p>Enrich existing IOCs with VirusTotal scan results and detection scores.</p>
                   <button className="btn-primary" disabled={loading}
@@ -371,8 +371,8 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   </button>
                 </div>
                 <div className="panel ingest-card">
-                  <div className="ingest-icon">◌</div>
-                  <h3>ThreatFox</h3>
+                                    <div className="ingest-icon" style={{ color: '#0026ff' }}>◌</div>
+                <h3>ThreatFox</h3>
                   <p>Scrape recent IOCs from ThreatFox threat intelligence feed.</p>
                   <button className="btn-primary" disabled={loading}
                     onClick={() => handleIngest(() => runScraper('pastebin'), 'ThreatFox')}>
@@ -380,7 +380,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   </button>
                 </div>
                 <div className="panel ingest-card">
-                  <div className="ingest-icon" style={{ color: '#ffc233' }}>◉</div>
+                  <div className="ingest-icon" style={{ color: '#a70a0a' }}>◉</div>
                   <h3>MalwareBazaar</h3>
                   <p>Fetch recent malware samples and hashes from MalwareBazaar.</p>
                   <button className="btn-primary" disabled={loading}
@@ -389,12 +389,12 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   </button>
                 </div>
                 <div className="panel ingest-card">
-                  <div className="ingest-icon">⊕</div>
+                  <div className="ingest-icon"style={{ color:'red' }}>⊕</div>
                   <h3>Run All Scrapers</h3>
                   <p>Trigger all available scrapers at once and ingest results into the DB.</p>
                   <button className="btn-danger" disabled={loading}
                     onClick={() => handleIngest(() => runAllScrapers(), 'All Scrapers')}>
-                    {loading ? 'Running...' : '⚡ Run All'}
+                    {loading ? 'Running...' : ' Run All'}
                   </button>
                 </div>
               </div>

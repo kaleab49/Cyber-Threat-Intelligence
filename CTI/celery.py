@@ -13,8 +13,4 @@ app.conf.beat_schedule = {
         'task': 'threatintel.tasks.run_all_feeds',
         'schedule': crontab(minute=0),  # every hour
     },
-    'run-cisa-kev-daily': {
-        'task': 'threatintel.tasks.run_feed_threat',
-        'schedule': crontab(hour=6, minute=0),  # every day at 6am
-    },
 }

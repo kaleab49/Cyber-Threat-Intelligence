@@ -575,7 +575,7 @@
 }
 
 .l-footer-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text); }
-.l-nav-name { font-size: 14px; }
+.l-nav-name { font-size: 21px; }
 
 /* ── MODAL ── */
 .l-modal-backdrop {

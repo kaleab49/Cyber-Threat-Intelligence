@@ -74,7 +74,7 @@ export default function Landing({ onLogin }: Props) {
       <nav className="l-nav">
         <div className="l-nav-brand">
           <span className="l-nav-hex">⬡</span>
-          <span className="l-nav-name">CTI Platform</span>
+          <span className="l-nav-name">INSA-CTI</span>
         </div>
         <div className="l-nav-links">
           <a href="#features">Features</a>
@@ -282,7 +282,7 @@ export default function Landing({ onLogin }: Props) {
       <footer className="l-footer">
         <div className="l-footer-brand">
           <span className="l-nav-hex">⬡</span>
-          <span>CTI Platform</span>
+          <span>INSA-CTI</span>
         </div>
         <div className="l-footer-copy">Built for security teams. Powered by Django + React.</div>
       </footer>
