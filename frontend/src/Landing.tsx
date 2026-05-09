@@ -175,7 +175,7 @@ export default function Landing({ onLogin }: Props) {
             { value: 200000, suffix: '+', label: 'IOCs processed monthly' },
             { value: 24, suffix: '/7', label: 'Always-on collection' },
             { value: 95, suffix: '%', label: 'IOC classification accuracy' },
-            { value: 5, suffix: ' feeds', label: 'Integrated threat sources' },
+            { value: 9, suffix: ' feeds', label: 'Integrated threat sources' },
           ].map((s, i) => (
             <div key={i} className="l-stat-card">
               <div className="l-stat-number">

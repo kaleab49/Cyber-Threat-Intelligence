@@ -53,7 +53,6 @@ export default function App() {
   return <Dashboard username={username} onLogout={handleLogout} />
 }
 
-// ── Main Dashboard ────────────────────────────────────────────────────────
 
 function Dashboard({ username, onLogout }: { username: string; onLogout: () => void }) {
   const [view, setView]               = useState<View>('dashboard')
@@ -176,7 +175,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
         {message && <div className="alert alert-ok">{message}</div>}
         {error   && <div className="alert alert-error">{error}</div>}
 
-        {/* ── DASHBOARD ── */}
+      
         {view === 'dashboard' && stats && (
           <div className="view-dashboard">
             <div className="stats-grid">
@@ -239,7 +238,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
           </div>
         )}
 
-        {/* ── IOCs ── */}
+     
         {view === 'iocs' && (
           <div className="view-content">
             <div className="filters-bar">
@@ -279,7 +278,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
           </div>
         )}
 
-        {/* ── EVENTS ── */}
+       
         {view === 'events' && (
           <div className="view-content">
             <div className="panel">
@@ -302,7 +301,6 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
           </div>
         )}
 
-                      {/* ── INGEST ── */}
           {view === 'ingest' && (
             <div className="view-content">
 
@@ -314,7 +312,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   <p>Ingest recent malicious URLs from abuse.ch URLhaus feed.</p>
                   <button className="btn-primary" disabled={loading}
                     onClick={() => handleIngest(() => ingestUrlhaus(100), 'URLhaus')}>
-                    {loading ? 'Running...' : 'Ingest URLhaus'}
+                    {loading ? 'Scraping...' : 'Ingest URLhaus'}
                   </button>
                 </div>
                 <div className="panel ingest-card">
@@ -323,7 +321,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   <p>Ingest known exploited vulnerabilities from CISA KEV catalog.</p>
                   <button className="btn-primary" disabled={loading}
                     onClick={() => handleIngest(() => ingestKev(100), 'CISA KEV')}>
-                    {loading ? 'Running...' : 'Ingest CISA KEV'}
+                    {loading ? 'Scraping...' : 'Ingest CISA KEV'}
                   </button>
                 </div>
                 <div className="panel ingest-card">
@@ -341,7 +339,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                 </div>
               </div>
 
-              <div className="ingest-section-title" style={{ marginTop: '28px' }}>Scrapers</div>
+              <div className="ingest-section-title" style={{ marginTop: '30px' }}>Scrapers</div>
               <div className="ingest-grid">
                 <div className="panel ingest-card">
                  <div className="ingest-icon" style={{ color: '#4dff00' }}>◉</div>
@@ -349,7 +347,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   <p>Ingest from CERT, CISA advisories and AlienVault OTX RSS feeds.</p>
                   <button className="btn-primary" disabled={loading}
                     onClick={() => handleIngest(() => runScraper('threat-feed'), 'Threat Feed')}>
-                    {loading ? 'Running...' : 'Run Threat Feed'}
+                    {loading ? 'Scraping...' : 'Scrape Threat Feed'}
                   </button>
                 </div>
                 <div className="panel ingest-card">
@@ -358,7 +356,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   <p>Scan darkweb sources for leaked IPs and threat indicators.</p>
                   <button className="btn-primary" disabled={loading}
                     onClick={() => handleIngest(() => runScraper('darkweb'), 'Darkweb')}>
-                    {loading ? 'Running...' : 'Run Darkweb Scan'}
+                    {loading ? 'Scraping...' : 'Scrape Darkweb '}
                   </button>
                 </div>
                 <div className="panel ingest-card">
@@ -367,7 +365,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   <p>Enrich existing IOCs with VirusTotal scan results and detection scores.</p>
                   <button className="btn-primary" disabled={loading}
                     onClick={() => handleIngest(() => runScraper('virustotal'), 'VirusTotal')}>
-                    {loading ? 'Running...' : 'Run VirusTotal'}
+                    {loading ? 'Scraping...' : 'Scrape VirusTotal'}
                   </button>
                 </div>
                 <div className="panel ingest-card">
@@ -376,7 +374,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   <p>Scrape recent IOCs from ThreatFox threat intelligence feed.</p>
                   <button className="btn-primary" disabled={loading}
                     onClick={() => handleIngest(() => runScraper('pastebin'), 'ThreatFox')}>
-                    {loading ? 'Running...' : 'Run ThreatFox'}
+                    {loading ? 'Scraping...' : 'Scrape ThreatFox'}
                   </button>
                 </div>
                 <div className="panel ingest-card">
@@ -385,7 +383,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   <p>Fetch recent malware samples and hashes from MalwareBazaar.</p>
                   <button className="btn-primary" disabled={loading}
                     onClick={() => handleIngest(() => runScraper('malwarebazaar'), 'MalwareBazaar')}>
-                    {loading ? 'Running...' : 'Run MalwareBazaar'}
+                    {loading ? 'Scraping...' : 'Scrape MalwareBazaar'}
                   </button>
                 </div>
                 <div className="panel ingest-card">
@@ -394,7 +392,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   <p>Trigger all available scrapers at once and ingest results into the DB.</p>
                   <button className="btn-danger" disabled={loading}
                     onClick={() => handleIngest(() => runAllScrapers(), 'All Scrapers')}>
-                    {loading ? 'Running...' : ' Run All'}
+                    {loading ? 'Scraping...' : ' Scrape All'}
                   </button>
                 </div>
               </div>
@@ -402,7 +400,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
             </div>
           )}
 
-        {/* ── EXTRACT ── */}
+        
         {view === 'extract' && (
           <div className="view-content">
             <div className="panel">
