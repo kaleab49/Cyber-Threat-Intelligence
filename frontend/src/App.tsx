@@ -91,7 +91,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
     }
   }
 
-  useEffect(() => { loadAll() }, []) // eslint-disable-line
+  useEffect(() => { loadAll() }, []) 
 
   async function handleIngest(action: () => Promise<unknown>, label: string) {
     setLoading(true); setError(''); setMessage('')

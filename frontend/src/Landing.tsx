@@ -43,11 +43,13 @@ function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: str
 }
 
 const FEEDS = [
-  { name: 'URLhaus', type: 'URL', count: '1.2K', color: '#aa88ff' },
-  { name: 'CISA KEV', type: 'CVE', count: '847', color: '#ff4466' },
+  { name: 'URLhaus', type: 'URL', count: '1.2K', color: '#733efb' },
+  { name: 'CISA KEV', type: 'CVE', count: '847', color: '#3784dc' },
   { name: 'ThreatFox', type: 'IOC', count: '3.4K', color: '#00d4ff' },
-  { name: 'Threat Feeds', type: 'URL', count: '2.1K', color: '#00e89a' },
+  { name: 'Threat Feeds', type: 'URL', count: '2.1K', color: '#27e800' },
   { name: 'Darkweb', type: 'IP', count: '512', color: '#ffc233' },
+  { name: 'Malwarebazaar', type: 'Malware', count: '512', color: '#ff0000' },
+  { name: 'VirusTotal', type: 'Virus , Threat-Actors', count: '3122', color: '#f92e00' },
 ]
 
 export default function Landing({ onLogin }: Props) {
@@ -227,6 +229,7 @@ export default function Landing({ onLogin }: Props) {
               desc: 'Celery-powered background tasks run your scrapers on a schedule — no manual effort required.',
               color: '#4488ff',
             },
+             
           ].map((f, i) => (
             <div key={i} className="l-feature-card" style={{ '--fc': f.color } as React.CSSProperties}>
               <div className="l-feature-icon">{f.icon}</div>
