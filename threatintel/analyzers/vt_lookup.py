@@ -1,6 +1,9 @@
 import requests
 
-VT_API_KEY = "YOUR_API_KEY"
+import os
+from dotenv import load_dotenv
+load_dotenv()
+VT_API_KEY = os.getenv("VIRUSTOTAL_API_KEY", "")
 
 def vt_lookup(hash_value):
     url = f"https://www.virustotal.com/api/v3/files/{hash_value}"

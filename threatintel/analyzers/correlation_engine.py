@@ -4,9 +4,7 @@ from threatintel.models import Relationship
 
 
 def correlate_event(event, iocs):
-    """
-    Create relationships between IOCs that appear in the same event.
-    """
+
 
     created_links = []
 
