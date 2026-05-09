@@ -11,7 +11,6 @@ from rest_framework_simplejwt.exceptions import TokenError
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def register(request):
-    """POST /api/auth/register/"""
     username = request.data.get("username", "").strip()
     password = request.data.get("password", "").strip()
     email    = request.data.get("email", "").strip()
@@ -42,7 +41,6 @@ def register(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def login(request):
-    """POST /api/auth/login/"""
     username = request.data.get("username", "").strip()
     password = request.data.get("password", "").strip()
 
@@ -72,7 +70,6 @@ def login(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def refresh_token(request):
-    """POST /api/auth/refresh/"""
     token = request.data.get("refresh")
     if not token:
         return Response({"error": "Refresh token required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -86,7 +83,6 @@ def refresh_token(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout(request):
-    """POST /api/auth/logout/"""
     token = request.data.get("refresh")
     if not token:
         return Response({"error": "Refresh token required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -100,7 +96,6 @@ def logout(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def me(request):
-    """GET /api/auth/me/"""
     return Response({
         "id":       request.user.id,
         "username": request.user.username,
