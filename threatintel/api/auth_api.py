@@ -1,15 +1,17 @@
 
 from django.contrib.auth.models import User
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle, UserRateThrottle])
 def register(request):
     username = request.data.get("username", "").strip()
     password = request.data.get("password", "").strip()
@@ -40,6 +42,7 @@ def register(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle, UserRateThrottle])
 def login(request):
     username = request.data.get("username", "").strip()
     password = request.data.get("password", "").strip()
@@ -69,6 +72,7 @@ def login(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle, UserRateThrottle])
 def refresh_token(request):
     token = request.data.get("refresh")
     if not token:
@@ -82,6 +86,7 @@ def refresh_token(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@throttle_classes([UserRateThrottle])
 def logout(request):
     token = request.data.get("refresh")
     if not token:
@@ -95,6 +100,7 @@ def logout(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
+@throttle_classes([UserRateThrottle])
 def me(request):
     return Response({
         "id":       request.user.id,

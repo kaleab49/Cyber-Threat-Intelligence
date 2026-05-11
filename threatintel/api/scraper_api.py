@@ -1,5 +1,6 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 from threatintel.tasks import (
     run_all_feeds, run_feed_threat, run_feed_pastebin,
     run_feed_darkweb, run_feed_malwarebazaar, run_feed_twitter,
@@ -12,30 +13,37 @@ def _trigger(task_fn, async_mode):
     return Response(task_fn())
 
 @api_view(["POST"])
+@throttle_classes([UserRateThrottle])
 def run_all_feeds_api(request):
     return _trigger(run_all_feeds, request.data.get("async", False))
 
 @api_view(["POST"])
+@throttle_classes([UserRateThrottle])
 def run_feed_threat_api(request):
     return _trigger(run_feed_threat, request.data.get("async", False))
 
 @api_view(["POST"])
+@throttle_classes([UserRateThrottle])
 def run_feed_pastebin_api(request):
     return _trigger(run_feed_pastebin, request.data.get("async", False))
 
 @api_view(["POST"])
+@throttle_classes([UserRateThrottle])
 def run_feed_darkweb_api(request):
     return _trigger(run_feed_darkweb, request.data.get("async", False))
 
 @api_view(["POST"])
+@throttle_classes([UserRateThrottle])
 def run_feed_malwarebazaar_api(request):
     return _trigger(run_feed_malwarebazaar, request.data.get("async", False))
 
 @api_view(["POST"])
+@throttle_classes([UserRateThrottle])
 def run_feed_twitter_api(request):
     return _trigger(run_feed_twitter, request.data.get("async", False))
 
 @api_view(["GET"])
+@throttle_classes([UserRateThrottle])
 def scraper_status(request):
     return Response({
         "scrapers": [
@@ -51,6 +59,7 @@ def scraper_status(request):
 from threatintel.tasks import run_feed_virustotal
 
 @api_view(["POST"])
+@throttle_classes([UserRateThrottle])
 def run_feed_virustotal_api(request):
     """POST /api/scrapers/virustotal/"""
     return _trigger(run_feed_virustotal, request.data.get("async", False))

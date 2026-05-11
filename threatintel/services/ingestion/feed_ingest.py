@@ -1,5 +1,6 @@
 import ipaddress
 import re
+import socket
 from datetime import datetime
 from urllib.parse import urlparse
 
@@ -49,6 +50,50 @@ def _is_ip_address(value):
         return True
     except ValueError:
         return False
+
+
+def _is_public_ip_address(address):
+    ip = ipaddress.ip_address(address)
+    return not (
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_multicast
+        or ip.is_reserved
+        or ip.is_unspecified
+    )
+
+
+def _validate_public_http_url(url):
+    parsed = urlparse(str(url).strip())
+    if parsed.scheme not in {"http", "https"}:
+        raise ValueError("Only http and https URLs are allowed.")
+
+    hostname = parsed.hostname
+    if not hostname:
+        raise ValueError("Invalid URL hostname.")
+
+    if hostname.lower() in {"localhost"}:
+        raise ValueError("Localhost is not allowed.")
+
+    is_ip_literal = False
+    try:
+        host_ip = ipaddress.ip_address(hostname)
+        is_ip_literal = True
+        if not _is_public_ip_address(host_ip):
+            raise ValueError("Private or restricted network targets are not allowed.")
+    except ValueError:
+        if is_ip_literal:
+            raise
+        try:
+            resolved = socket.getaddrinfo(hostname, None)
+        except socket.gaierror as exc:
+            raise ValueError(f"Unable to resolve hostname: {hostname}") from exc
+
+        for entry in resolved:
+            resolved_ip = entry[4][0]
+            if not _is_public_ip_address(resolved_ip):
+                raise ValueError("Private or restricted network targets are not allowed.")
 
 
 def _upsert_ioc(value, ioc_type, source, threat_score=0, tags=None):
@@ -201,6 +246,7 @@ def ingest_cisa_kev(limit=100):
 
 
 def scrape_ioc_page(url, source="web-scrape", limit=500):
+    _validate_public_http_url(url)
     response = requests.get(url, timeout=20)
     response.raise_for_status()
     html = response.text

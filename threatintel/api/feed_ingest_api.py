@@ -1,6 +1,7 @@
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 
 from threatintel.services.ingestion.feed_ingest import (
     enrich_cves_from_circl,
@@ -11,6 +12,7 @@ from threatintel.services.ingestion.feed_ingest import (
 
 
 @api_view(["POST"])
+@throttle_classes([UserRateThrottle])
 def ingest_urlhaus_recent_api(request):
     limit = request.data.get("limit", 100)
     try:
@@ -24,6 +26,7 @@ def ingest_urlhaus_recent_api(request):
 
 
 @api_view(["POST"])
+@throttle_classes([UserRateThrottle])
 def enrich_cves_circl_api(request):
     limit = request.data.get("limit", 50)
     try:
@@ -37,6 +40,7 @@ def enrich_cves_circl_api(request):
 
 
 @api_view(["POST"])
+@throttle_classes([UserRateThrottle])
 def ingest_cisa_kev_api(request):
     limit = request.data.get("limit", 100)
     try:
@@ -50,6 +54,7 @@ def ingest_cisa_kev_api(request):
 
 
 @api_view(["POST"])
+@throttle_classes([UserRateThrottle])
 def scrape_ioc_page_api(request):
     url = request.data.get("url")
     source = request.data.get("source", "web-scrape")
