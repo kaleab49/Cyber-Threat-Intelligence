@@ -49,9 +49,11 @@ htmlcov/
 .ruff_cache/
 
 # Celery
-celerybeat-schedule
-celerybeat-schedule.*
+celerybeat-schedule*
 celerybeat.pid
+
+# Node modules
+**/node_modules/
 
 # Editors & OS
 .idea/
