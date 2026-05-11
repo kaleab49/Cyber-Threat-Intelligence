@@ -351,7 +351,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   </button>
                 </div>
                 <div className="panel ingest-card">
-                  <div className="ingest-icon" style={{ color: '#ffe600' }}>  ◍ </div>
+                  <div className="ingest-icon" style={{ color: '#3f3f3e' }}>  ◍ </div>
                   <h3>Darkweb Scanner</h3>
                   <p>Scan darkweb sources for leaked IPs and threat indicators.</p>
                   <button className="btn-primary" disabled={loading}
@@ -360,7 +360,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
                   </button>
                 </div>
                 <div className="panel ingest-card">
-                  <div className="ingest-icon" style={{ color: '#ff6600' }}>◈</div>
+                  <div className="ingest-icon" style={{ color: '#ffdd00' }}>◈</div>
                   <h3>VirusTotal</h3>
                   <p>Enrich existing IOCs with VirusTotal scan results and detection scores.</p>
                   <button className="btn-primary" disabled={loading}

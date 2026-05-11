@@ -7,10 +7,7 @@ from threatintel.ioc.extractor import extract_iocs
 
 @api_view(["POST"])
 def extract_iocs_from_text(request):
-    """
-    POST /api/ioc/extract/
-    Body: { "text": "raw text containing IOCs" }
-    """
+
     text = request.data.get("text", "").strip()
 
     if not text:

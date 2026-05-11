@@ -25,7 +25,6 @@ def graph_data(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # ── Build queryset ─────────────────────────────────────
     qs = Relationship.objects.select_related("source_ioc", "target_ioc")
 
     if ioc_id:
@@ -33,7 +32,6 @@ def graph_data(request):
 
     relationships = qs[:limit]
 
-    # ── Build nodes + edges ────────────────────────────────
     nodes = {}
     edges = []
 
@@ -41,7 +39,6 @@ def graph_data(request):
         src = rel.source_ioc
         tgt = rel.target_ioc
 
-        # Add source node
         if str(src.id) not in nodes:
             nodes[str(src.id)] = {
                 "id":           str(src.id),
@@ -51,7 +48,6 @@ def graph_data(request):
                 "source":       src.source,
             }
 
-        # Add target node
         if str(tgt.id) not in nodes:
             nodes[str(tgt.id)] = {
                 "id":           str(tgt.id),
@@ -61,7 +57,6 @@ def graph_data(request):
                 "source":       tgt.source,
             }
 
-        # Add edge
         edges.append({
             "id":            str(rel.id),
             "source":        str(src.id),

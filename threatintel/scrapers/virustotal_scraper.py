@@ -99,7 +99,7 @@ def fetch_virustotal(limit=10):
 
             if enriched:
                 results.append(enriched)
-            time.sleep(1)  # 4 req/min free tier
+            time.sleep(1) 
         except Exception as e:
             print(f"VT enrichment error for {ioc.value}: {e}")
 

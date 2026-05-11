@@ -9,16 +9,12 @@ from threatintel.models import IOC, Event, Malware, ThreatActor, Campaign
 
 @api_view(["GET"])
 def dashboard_stats(request):
-    """
-    GET /api/analytics/dashboard/
-    Returns aggregated stats for the CTI dashboard.
-    """
+
     now        = timezone.now()
     last_24h   = now - timedelta(hours=24)
     last_7d    = now - timedelta(days=7)
     last_30d   = now - timedelta(days=30)
 
-    # ── IOC Stats ──────────────────────────────────────────
     total_iocs      = IOC.objects.count()
     iocs_24h        = IOC.objects.filter(first_seen__gte=last_24h).count()
     iocs_7d         = IOC.objects.filter(first_seen__gte=last_7d).count()
@@ -39,7 +35,6 @@ def dashboard_stats(request):
     avg_threat_score = IOC.objects.aggregate(avg=Avg("threat_score"))["avg"] or 0
     max_threat_score = IOC.objects.aggregate(max=Max("threat_score"))["max"] or 0
 
-    # ── Event Stats ────────────────────────────────────────
     total_events    = Event.objects.count()
     events_24h      = Event.objects.filter(timestamp__gte=last_24h).count()
     events_7d       = Event.objects.filter(timestamp__gte=last_7d).count()
@@ -50,7 +45,6 @@ def dashboard_stats(request):
         .order_by("-count")[:10]
     )
 
-    # ── Daily IOC trend (last 30 days) ─────────────────────
     daily_iocs = list(
         IOC.objects.filter(first_seen__gte=last_30d)
         .extra(select={"day": "date(first_seen)"})
@@ -59,13 +53,11 @@ def dashboard_stats(request):
         .order_by("day")
     )
 
-    # ── Top threats ────────────────────────────────────────
     top_threats = list(
         IOC.objects.order_by("-threat_score", "-times_seen")
         .values("id", "value", "type", "source", "threat_score", "tags")[:10]
     )
 
-    # ── Other model counts ─────────────────────────────────
     total_malware      = Malware.objects.count()
     total_actors       = ThreatActor.objects.count()
     total_campaigns    = Campaign.objects.count()
