@@ -10,7 +10,9 @@ def enrich_ioc(ioc):
     elif ioc_type == "cve":
         score = 90
 
+    # Keep backward compatibility (`score`) while standardizing on `threat_score`.
     ioc["score"] = score
+    ioc["threat_score"] = score
     return ioc
 
 

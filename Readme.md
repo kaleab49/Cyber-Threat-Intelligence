@@ -13,7 +13,7 @@ A full-stack, production-grade Cyber Threat Intelligence (CTI) platform built wi
 - **MalwareBazaar Integration** — Fetch recent malware samples and hashes
 - **IOC Extraction** — Extract IOCs from raw text, threat reports, or logs instantly
 - **Relationship Graph** — Visualize connections between IOCs, campaigns, and threat actors
-- **Automated Scheduling** — Celery + RabbitMQ for background task execution (hourly scraping)
+- **Automated Scheduling** — Celery (Redis by default, configurable broker) for background task execution
 - **JWT Authentication** — Secure login/register with token-based auth
 - **Analytics Dashboard** — Real-time stats, threat trends, top threats, and source breakdown
 - **Event Timeline** — Full audit log of all ingestion and enrichment events
@@ -28,7 +28,7 @@ A full-stack, production-grade Cyber Threat Intelligence (CTI) platform built wi
 |---|---|
 | Backend | Python 3.13, Django 5.2, Django REST Framework |
 | Auth | SimpleJWT (JWT tokens) |
-| Task Queue | Celery 5.6, RabbitMQ |
+| Task Queue | Celery 5.6, Redis (default) / RabbitMQ (optional) |
 | Database | SQLite (dev) / PostgreSQL (prod) |
 | Frontend | React 18, TypeScript, Vite |
 | Styling | Custom CSS (dark theme) |
@@ -98,7 +98,7 @@ Cyber-Threat-Intelligence/
 ### Prerequisites
 - Python 3.11+
 - Node.js 20+
-- RabbitMQ
+- Redis (default broker) or RabbitMQ
 
 ### 1. Clone the repository
 ```bash
@@ -121,10 +121,14 @@ cp .env.example .env
 Edit `.env` with your values:
 ```env
 SECRET_KEY=your-django-secret-key
-DEBUG=True
+DEBUG=False
 ALLOWED_HOSTS=localhost,127.0.0.1
 VIRUSTOTAL_API_KEY=your-virustotal-api-key
 THREATFOX_API_KEY=your-threatfox-api-key
+TWITTER_BEARER_TOKEN=your-twitter-bearer-token
+CELERY_BROKER_URL=redis://localhost:6379/0
+THROTTLE_ANON=60/hour
+THROTTLE_USER=600/hour
 ```
 
 ### 4. Run database migrations
@@ -246,9 +250,10 @@ python manage.py test threatintel --verbosity=2
 ## 🔒 Security
 
 - JWT authentication with token blacklisting on logout
-- All secrets loaded from `.env` (never hardcoded)
+- Environment-driven secrets and host configuration (`SECRET_KEY`, `ALLOWED_HOSTS`, `DEBUG`)
 - Input validation and normalization on all IOC types
-- Rate limiting awareness on external API calls
+- API throttling enabled for auth and ingestion endpoints
+- SSRF protections on URL scrape ingestion (private/loopback targets blocked)
 - `.env` excluded from version control via `.gitignore`
 
 ---

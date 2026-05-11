@@ -28,7 +28,9 @@ def _process_feed(name, feed_fn):
 
         try:
             enriched = enrich_ioc(ioc)
-            threat_score = enriched.get("threat_score", 0) if isinstance(enriched, dict) else 0
+            threat_score = 0
+            if isinstance(enriched, dict):
+                threat_score = enriched.get("threat_score", enriched.get("score", 0))
 
             IOC.objects.upsert_ioc(
                 value=value,
