@@ -1,5 +1,5 @@
 from threatintel.scrapers.threat_feed_scraper import fetch_threat_feed
-from threatintel.scrapers.pastebin_scraper import fetch_pastebin
+from threatintel.scrapers.threatfox_scraper import fetch_pastebin
 from threatintel.scrapers.twitter_scraper import fetch_twitter
 from threatintel.scrapers.malwarebazaar_api import fetch_malwarebazaar
 from threatintel.scrapers.darkweb_scraper import fetch_darkweb

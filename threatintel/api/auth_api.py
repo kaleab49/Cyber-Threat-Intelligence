@@ -108,3 +108,41 @@ def me(request):
         "email":    request.user.email,
         "is_staff": request.user.is_staff,
     })
+
+
+from django.contrib.auth.models import User
+from rest_framework.permissions import IsAdminUser
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_users(request):
+    """GET /api/auth/users/"""
+    if not request.user.is_staff:
+        return Response({"error": "Admin access required."}, status=status.HTTP_403_FORBIDDEN)
+    users = User.objects.all().order_by('-date_joined')
+    data = [{
+        "id":           u.id,
+        "username":     u.username,
+        "email":        u.email,
+        "is_staff":     u.is_staff,
+        "is_active":    u.is_active,
+        "date_joined":  u.date_joined,
+        "last_login":   u.last_login,
+    } for u in users]
+    return Response({"count": len(data), "results": data})
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_user(request, user_id):
+    """DELETE /api/auth/users/<id>/"""
+    if not request.user.is_staff:
+        return Response({"error": "Admin access required."}, status=status.HTTP_403_FORBIDDEN)
+    try:
+        user = User.objects.get(id=user_id)
+        if user == request.user:
+            return Response({"error": "Cannot delete yourself."}, status=status.HTTP_400_BAD_REQUEST)
+        user.delete()
+        return Response({"message": "User deleted."})
+    except User.DoesNotExist:
+        return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)

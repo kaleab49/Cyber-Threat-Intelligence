@@ -26,6 +26,7 @@ export type EventItem = {
 }
 
 export type DashboardStats = {
+  users: string | number
   generated_at: string
   iocs: {
     total: number
@@ -99,7 +100,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   return response.json() as Promise<T>
+  
 }
+
+
 
 // ── IOC endpoints ─────────────────────────────────────────────────────────
 export async function fetchIocs(params?: {
@@ -157,4 +161,21 @@ export async function runAllScrapers(): Promise<IngestResult> {
 
 export async function runScraper(name: string): Promise<IngestResult> {
   return request<IngestResult>(`/scrapers/${name}/`, { method: 'POST' })
+}
+export type UserItem = {
+  id: number
+  username: string
+  email: string
+  is_staff: boolean
+  is_active: boolean
+  date_joined: string
+  last_login: string | null
+}
+
+export async function fetchUsers(): Promise<{ count: number; results: UserItem[] }> {
+  return request('/auth/users/')
+}
+
+export async function deleteUser(id: number): Promise<void> {
+  return request(`/auth/users/${id}/`, { method: 'DELETE' })
 }

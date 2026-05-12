@@ -6,6 +6,9 @@ from threatintel.api.analytics_api import dashboard_stats
 from threatintel.api.scraper_api import run_feed_virustotal_api
 from threatintel.api.ioc_api import extract_iocs_from_text
 from threatintel.api.auth_api import register, login, refresh_token, logout, me
+from threatintel.api.auth_api import list_users, delete_user
+
+# Add to urlpatterns
 from threatintel.api.feed_ingest_api import (
     enrich_cves_circl_api,
     ingest_cisa_kev_api,
@@ -50,5 +53,7 @@ urlpatterns = [
     path('auth/logout/',   logout,         name='auth-logout'),
     path('auth/me/',       me,             name='auth-me'),
     path('scrapers/virustotal/', run_feed_virustotal_api, name='scraper-virustotal'),
+    path('auth/users/', list_users, name='list-users'),
+    path('auth/users/<int:user_id>/', delete_user, name='delete-user'),
 ]
 

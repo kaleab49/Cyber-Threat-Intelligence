@@ -5,12 +5,13 @@ import Landing from './Landing'
 import {
   fetchEvents, fetchIocs, fetchDashboardStats,
   ingestKev, ingestScrape, ingestUrlhaus,
-  extractIocs, runAllScrapers, runScraper,
+  extractIocs, runAllScrapers, runScraper, fetchUsers, deleteUser,
   setTokens, clearTokens, getAccessToken,
 } from './api'
-import type { EventItem, IOC, DashboardStats } from './api'
+import type { EventItem, IOC, DashboardStats, UserItem } from './api'
 
-type View = 'dashboard' | 'iocs' | 'events' | 'ingest' | 'extract'
+type View = 'dashboard' | 'iocs' | 'events' | 'ingest' | 'extract' | 'users'
+
 
 function ScoreBadge({ score }: { score: number }) {
   const level = score >= 75 ? 'critical' : score >= 50 ? 'high' : score >= 25 ? 'medium' : 'low'
@@ -34,27 +35,104 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string 
 export default function App() {
   const [isAuth, setIsAuth]     = useState(!!getAccessToken())
   const [username, setUsername] = useState(sessionStorage.getItem('username') || '')
-
+  const [isStaff, setIsStaff] = useState(sessionStorage.getItem('is_staff') === 'true')
+ 
   function handleLogin(access: string, refresh: string, user: string) {
-    setTokens(access, refresh)
-    sessionStorage.setItem('username', user)
-    setUsername(user)
-    setIsAuth(true)
-  }
+  setTokens(access, refresh)
+  sessionStorage.setItem('username', user)
+  setUsername(user)
+  setIsAuth(true)
+  fetch('/api/auth/me/', {
+    headers: { 'Authorization': `Bearer ${access}` }
+  })
+  .then(r => r.json())
+  .then(data => {
+    const staff = data.is_staff === true
+    sessionStorage.setItem('is_staff', staff ? 'true' : 'false')
+    setIsStaff(staff)
+  })
+  .catch(() => {
+    sessionStorage.setItem('is_staff', 'false')
+    setIsStaff(false)
+  })
+} 
 
   function handleLogout() {
-    clearTokens()
-    setIsAuth(false)
-    setUsername('')
-  }
-
-  if (!isAuth) return <Landing onLogin={handleLogin} />
-
-  return <Dashboard username={username} onLogout={handleLogout} />
+  clearTokens()
+  sessionStorage.removeItem('is_staff')
+  setIsAuth(false)
+  setUsername('')
+  setIsStaff(false)
 }
 
+ if (!isAuth) return <Landing onLogin={handleLogin} />
+return <Dashboard username={username} onLogout={handleLogout} isStaff={isStaff} />
+}
 
-function Dashboard({ username, onLogout }: { username: string; onLogout: () => void }) {
+function UsersView() {
+  const [users, setUsers] = useState<UserItem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+
+  async function loadUsers() {
+    setLoading(true); setError('')
+    try {
+      const res = await fetchUsers()
+      setUsers(res.results)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load users')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleDelete(id: number, username: string) {
+    if (!confirm(`Delete user "${username}"?`)) return
+    try {
+      await deleteUser(id)
+      setMessage(`User "${username}" deleted.`)
+      loadUsers()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete user')
+    }
+  }
+
+  useEffect(() => { loadUsers() }, [])
+
+  return (
+    <div className="view-content">
+      {message && <div className="alert alert-ok">{message}</div>}
+      {error   && <div className="alert alert-error">{error}</div>}
+      <div className="panel">
+        <table className="table">
+          <thead>
+            <tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            {users.map(u => (
+              <tr key={u.id}>
+                <td className="mono">{u.username}</td>
+                <td className="muted">{u.email || '—'}</td>
+                <td><span className={`badge ${u.is_staff ? 'badge-critical' : 'badge-low'}`}>{u.is_staff ? 'Admin' : 'User'}</span></td>
+                <td><span className={`badge ${u.is_active ? 'badge-medium' : 'badge-low'}`}>{u.is_active ? 'Active' : 'Inactive'}</span></td>
+                <td className="muted">{new Date(u.date_joined).toLocaleDateString()}</td>
+                <td>
+                  <button className="btn-danger" style={{padding: '4px 12px', fontSize: '12px'}}
+                    onClick={() => handleDelete(u.id, u.username)}>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {users.length === 0 && !loading && <div className="empty">No users found</div>}
+      </div>
+    </div>
+  )
+}
+function Dashboard({ username, onLogout, isStaff }: { username: string; onLogout: () => void; isStaff: boolean }) {
   const [view, setView]               = useState<View>('dashboard')
   const [iocs, setIocs]               = useState<IOC[]>([])
   const [events, setEvents]           = useState<EventItem[]>([])
@@ -71,7 +149,11 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
 
   const sources = useMemo(() => Array.from(new Set(iocs.map(i => i.source))).sort(), [iocs])
   const types   = useMemo(() => Array.from(new Set(iocs.map(i => i.type))).sort(), [iocs])
-
+   
+  useEffect(() => {
+  if (!isStaff && view === 'users') setView('dashboard')
+}, [isStaff])
+  
   async function loadAll() {
     setLoading(true); setError('')
     try {
@@ -126,13 +208,14 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
     handleIngest(() => ingestScrape(scrapeUrl.trim()), 'Scrape ingest')
   }
 
-  const navItems: { id: View; label: string; icon: string }[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: '⬡' },
-    { id: 'iocs',      label: 'IOCs',      icon: '◈' },
-    { id: 'events',    label: 'Events',    icon: '◎' },
-    { id: 'ingest',    label: 'Ingest',    icon: '⊕' },
-    { id: 'extract',   label: 'Extract',   icon: '⊗' },
-  ]
+const navItems = [
+  { id: 'dashboard', label: 'Dashboard', icon: '⬡' },
+  { id: 'iocs',      label: 'IOCs',      icon: '◈' },
+  { id: 'events',    label: 'Events',    icon: '◎' },
+  { id: 'ingest',    label: 'Ingest',    icon: '⊕' },
+  { id: 'extract',   label: 'Extract',   icon: '⊗' },
+  ...(isStaff ? [{ id: 'users', label: 'Users', icon: '◑' }] : []),
+] as { id: View; label: string; icon: string }[]
 
   return (
     <div className="app">
@@ -171,6 +254,7 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
             <button className="btn-refresh" onClick={loadAll} disabled={loading}>↻ Refresh</button>
           </div>
         </div>
+        
 
         {message && <div className="alert alert-ok">{message}</div>}
         {error   && <div className="alert alert-error">{error}</div>}
@@ -185,6 +269,8 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
               <StatCard label="Events"        value={stats.events.total}           sub={`+${stats.events.last_24h} today`} accent="green"  />
               <StatCard label="Threat Actors" value={stats.threat_actors} />
               <StatCard label="Malware"       value={stats.malware} />
+              <StatCard label="Users"         value={stats.users} />
+
             </div>
 
             <div className="dashboard-grid">
@@ -440,4 +526,8 @@ function Dashboard({ username, onLogout }: { username: string; onLogout: () => v
       </main>
     </div>
   )
+}
+
+function setIsStaff(is_staff: any) {
+  throw new Error('Function not implemented.')
 }
